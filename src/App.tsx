@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Points, PointMaterial, Float, Stars } from '@react-three/drei';
+import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { 
   Github, 
   Linkedin, 
   Mail, 
   Zap, 
-  Users, 
-  Server, 
   User, 
   FolderCode, 
   MessageSquare, 
@@ -17,7 +15,8 @@ import {
   Briefcase,
   Trophy,
   MousePointer2,
-  Info
+  Globe,
+  ExternalLink
 } from 'lucide-react';
 
 // --- SVG Tech Icons ---
@@ -70,11 +69,11 @@ interface Project {
   title: string;
   shortDesc: string;
   summary: string;
-  categories: ('gameplay' | 'multiplayer' | 'backend')[];
   techs: (keyof typeof TECH_SVGS)[];
   image: string;
-  link?: string;
-  videoUrl?: string;
+  websiteUrl?: string;
+  mediaUrl?: string;
+  mediaLabel?: string;
 }
 
 interface Achievement {
@@ -90,66 +89,81 @@ const EXPERIENCE = [
     company: "Devsinc",
     role: "Senior Software Engineer",
     period: "2022 - Present",
-    description: "Leading multiplayer game development teams. Specialized in Photon Fusion, Unity architecture, and backend scalability for high-concurrency games."
+    description: "Leading multiplayer game teams focused on Unity architecture, Photon Fusion, and scalable backend systems."
   },
   {
     company: "Sacred Tails",
     role: "Lead Gameplay Engineer",
     period: "2021 - 2022",
-    description: "Developed core combat systems for a blockchain-based multiplayer card game. Integrated Sei chain and optimized Azure-based backend services."
+    description: "Built core combat and backend systems for a blockchain multiplayer card game on Sei."
   },
   {
     company: "Freelance",
     role: "Game Developer",
     period: "2019 - 2021",
-    description: "Solo developed multiple Unity-based projects including 'Triple Hand Poker' and 'Funny Shooter'. Focused on WebGL optimization and cross-platform gameplay."
+    description: "Shipped titles including Triple Hand Poker, Daleela, Robot Ring Fighting, and Funny Shooter."
   }
 ];
+
+const SOCIAL_LINKS = {
+  github: "https://github.com/IbrahimBu11",
+  linkedin: "https://www.linkedin.com/in/ibrahim-butt321123/",
+  email: "mailto:ibrahim.alibu11work@gmail.com"
+};
 
 const PROJECTS: Project[] = [
   {
     id: 1,
-    title: "Nanocry",
-    shortDesc: "Multiplayer Battle Royale (Unity, Photon Fusion).",
-    summary: "Architected faction-based battle royale supporting 30+ players. Engineered core network infrastructure with server-authoritative validation and lag compensation.",
-    categories: ['multiplayer', 'gameplay'],
-    techs: ["unity", "csharp", "photon"],
-    image: "https://picsum.photos/seed/nanocry/800/450",
-    link: "https://github.com/ibrahim-butt/nanocry",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    title: "Sacred Tails",
+    shortDesc: "Blockchain Card Battler.",
+    summary: "Built combat systems, Sei integration, and backend features for a multiplayer card game.",
+    techs: ["unity", "azure", "docker"],
+    image: "https://picsum.photos/seed/sacredtails/800/450",
+    websiteUrl: "https://www.sacredtails.com/",
+    mediaUrl: "https://www.youtube.com/watch?v=ie_Wk76ySac",
+    mediaLabel: "YouTube"
   },
   {
     id: 2,
-    title: "Sacred Tails",
-    shortDesc: "Blockchain Multiplayer Card Game (Sei Chain).",
-    summary: "Delivered turn-based card combat serving 300+ daily players. Integrated NFT characters and engineered combat evaluation algorithms using Azure Functions.",
-    categories: ['multiplayer', 'backend'],
-    techs: ["unity", "azure", "docker"],
-    image: "https://picsum.photos/seed/sacred/800/450",
-    link: "https://sacredtails.com",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    title: "Triple Hand Poker",
+    shortDesc: "Multiplayer Poker Game.",
+    summary: "Built a 6-player poker game with smooth online and offline flow plus custom hand evaluation.",
+    techs: ["unity", "photon", "csharp"],
+    image: "https://picsum.photos/seed/poker/800/450",
+    websiteUrl: "https://triplehandpoker.com/",
+    mediaUrl: "https://apps.apple.com/us/app/triple-hand-poker/id6449002117?platform=ipad",
+    mediaLabel: "Store"
   },
   {
     id: 3,
-    title: "Triple Hand Poker",
-    shortDesc: "6-Player Multiplayer Card Game.",
-    summary: "Solo developed poker game with seamless online/offline switching. Engineered custom card evaluation algorithms supporting 50+ hand combinations.",
-    categories: ['multiplayer', 'gameplay'],
-    techs: ["unity", "photon", "csharp"],
-    image: "https://picsum.photos/seed/poker/800/450",
-    link: "https://play.google.com/store/apps/details?id=com.triplehandpoker",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    title: "Daleela",
+    shortDesc: "Educational Mobile Experience.",
+    summary: "Delivered an accessible UNICEF mobile experience with guided, user-friendly interactions.",
+    techs: ["unity", "csharp"],
+    image: "https://picsum.photos/seed/daleela/800/450",
+    websiteUrl: "https://www.unicef.org/lebanon/daleela",
+    mediaUrl: "https://play.google.com/store/apps/details?id=com.unicef.daleela&hl=en&pli=1",
+    mediaLabel: "Store"
   },
   {
     id: 4,
-    title: "Funny Shooter",
-    shortDesc: "Web-Based Multiplayer FPS (Unity WebGL).",
-    summary: "Optimized WebGL build to 45MB while maintaining 60fps. Implemented projectile-based combat system with 12 unique weapon types.",
-    categories: ['multiplayer', 'gameplay'],
+    title: "Robot Ring Fighting",
+    shortDesc: "Arcade Mobile Fighting Game.",
+    summary: "Built combat gameplay, enemy encounters, and mobile-focused tuning for an action title.",
     techs: ["unity", "csharp"],
-    image: "https://picsum.photos/seed/shooter/800/450",
-    link: "https://funny-shooter.web.app",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    image: "https://picsum.photos/seed/robotring/800/450",
+    mediaUrl: "https://play.google.com/store/apps/details?id=com.gamex.robot.ring.fighting.games",
+    mediaLabel: "Store"
+  },
+  {
+    id: 5,
+    title: "Funny Shooter 2",
+    shortDesc: "Web Shooter.",
+    summary: "Optimized browser-based shooter gameplay for fast loading and responsive WebGL performance.",
+    techs: ["unity", "csharp"],
+    image: "https://picsum.photos/seed/funnyshooter/800/450",
+    mediaUrl: "https://poki.com/en/g/funny-shooter-2",
+    mediaLabel: "Play"
   }
 ];
 
@@ -419,7 +433,6 @@ export default function App() {
   const [lastKills, setLastKills] = useState<number[]>([]);
   const [screenFlash, setScreenFlash] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
-  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   
   const mouse = useRef<[number, number]>([0, 0]);
 
@@ -662,7 +675,7 @@ export default function App() {
           <div className="font-mono text-sm tracking-widest text-white mb-1">
             IBRAHIM<span className="text-yellow-400">.DEV</span>
           </div>
-          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Systems Architect</div>
+          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Senior Software Engineer</div>
         </div>
         
         <nav className="flex-1 py-10">
@@ -718,7 +731,7 @@ export default function App() {
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="text-[10px] font-mono text-yellow-400 uppercase tracking-widest">Achievement</div>
-                  <button onClick={() => setSelectedAchievement(null)} className="text-slate-500 hover:text-white">×</button>
+                  <button onClick={() => setSelectedAchievement(null)} className="text-slate-500 hover:text-white">X</button>
                 </div>
                 <div className="text-sm font-bold text-white mb-1">{selectedAchievement.title}</div>
                 <div className="text-xs text-slate-400 leading-tight">{selectedAchievement.description}</div>
@@ -760,16 +773,16 @@ export default function App() {
                   Ibrahim Butt
                 </h1>
                 <p className="text-xl md:text-2xl text-slate-400 font-light leading-relaxed mb-12">
-                  Building <span className="text-white font-medium">Multiplayer Worlds</span> and high-performance gameplay systems. Senior Software Engineer specializing in core architecture.
+                  Senior Software Engineer building <span className="text-white font-medium">multiplayer, mobile, and WebGL</span> game experiences.
                 </p>
                 <div className="flex gap-6">
-                  <a href="#" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
+                  <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
                     <Github size={20} />
                   </a>
-                  <a href="#" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
+                  <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
                     <Linkedin size={20} />
                   </a>
-                  <a href="#" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
+                  <a href={SOCIAL_LINKS.email} aria-label="Email" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
                     <Mail size={20} />
                   </a>
                 </div>
@@ -832,29 +845,34 @@ export default function App() {
                     {/* Project Interaction Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
                       <div className="flex gap-4">
-                        {project.videoUrl && (
-                          <button 
-                            onClick={() => setActiveVideo(project.videoUrl!)}
+                        {project.mediaUrl && (
+                          <a 
+                            href={project.mediaUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="p-4 rounded-full bg-yellow-400 text-black hover:scale-110 transition-transform shadow-xl"
                           >
-                            <Zap size={24} fill="currentColor" />
-                          </button>
+                            <ExternalLink size={24} />
+                          </a>
                         )}
-                        {project.link && (
+                        {project.websiteUrl && (
                           <a 
-                            href={project.link} 
+                            href={project.websiteUrl} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="p-4 rounded-full bg-white text-black hover:scale-110 transition-transform shadow-xl"
                           >
-                            <Github size={24} />
+                            <Globe size={24} />
                           </a>
                         )}
                       </div>
                     </div>
                   </div>
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-3xl font-bold text-white group-hover:text-yellow-400 transition-colors">{project.title}</h3>
+                    <div>
+                      <h3 className="text-3xl font-bold text-white group-hover:text-yellow-400 transition-colors">{project.title}</h3>
+                      <p className="mt-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400/70">{project.shortDesc}</p>
+                    </div>
                     <div className="flex gap-4">
                       {project.techs.map(tech => (
                         <div key={tech} className="text-slate-600 hover:text-white transition-colors">
@@ -864,6 +882,30 @@ export default function App() {
                     </div>
                   </div>
                   <p className="text-slate-400 leading-relaxed max-w-2xl mb-8">{project.summary}</p>
+                  <div className="flex flex-wrap gap-3">
+                    {project.websiteUrl && (
+                      <a
+                        href={project.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
+                      >
+                        <Globe size={14} />
+                        Website
+                      </a>
+                    )}
+                    {project.mediaUrl && (
+                      <a
+                        href={project.mediaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                      >
+                        <ExternalLink size={14} />
+                        {project.mediaLabel}
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -874,7 +916,7 @@ export default function App() {
             <div className="glass-card p-12 md:p-20 text-center">
               <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">Ready for Deployment?</h2>
               <p className="text-slate-400 mb-12 max-w-xl mx-auto leading-relaxed">
-                Available for high-stakes multiplayer projects and core gameplay architecture. Initialize connection via secure channels.
+                Available for multiplayer, gameplay, and mobile game projects.
               </p>
               <a 
                 href="mailto:ibrahim.alibu11work@gmail.com"
@@ -917,39 +959,6 @@ export default function App() {
           </div>
         </div>
       </div>
-      {/* Video Modal */}
-      <AnimatePresence>
-        {activeVideo && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-20"
-            onClick={() => setActiveVideo(null)}
-          >
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10"
-              onClick={e => e.stopPropagation()}
-            >
-              <button 
-                onClick={() => setActiveVideo(null)}
-                className="absolute top-6 right-6 z-10 p-2 bg-black/50 hover:bg-black text-white rounded-full transition-colors"
-              >
-                <Zap size={20} className="rotate-45" />
-              </button>
-              <iframe 
-                src={activeVideo} 
-                className="w-full h-full" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
