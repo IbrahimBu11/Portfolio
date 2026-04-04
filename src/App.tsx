@@ -86,28 +86,68 @@ interface Achievement {
   unlocked: boolean;
 }
 
+interface ExperienceEntry {
+  company: string;
+  location: string;
+  role: string;
+  period: string;
+  description: string;
+  highlights: string[];
+  stack: string[];
+}
+
+interface ExperienceStat {
+  value: string;
+  label: string;
+}
+
 // --- Constants & Data ---
-const EXPERIENCE = [
+const EXPERIENCE_STATS: ExperienceStat[] = [
+  { value: "4+", label: "Years In Game Dev" },
+  { value: "3+", label: "Multiplayer Titles Shipped" },
+  { value: "100+", label: "Concurrent Players" },
+  { value: "<100ms", label: "Average Match Latency" }
+];
+
+const EXPERIENCE: ExperienceEntry[] = [
   {
     company: "Devsinc",
     location: "Hybrid, Lahore",
     role: "Senior Software Engineer",
     period: "Feb 2025 - Present",
-    description: "Architecting multiplayer titles with Photon PUN2/Fusion, Azure, and PlayFab."
+    description: "Architecting multiplayer titles with Photon PUN2/Fusion, Azure, and PlayFab.",
+    highlights: [
+      "50+ concurrent players with 85ms average latency",
+      "40% lower hosting costs through custom multiplayer pipeline",
+      "1,000+ daily matches with sub-3 second queue times"
+    ],
+    stack: ["Photon Fusion", "PlayFab", "Azure", "Optimization"]
   },
   {
     company: "Katana Games",
     location: "Hybrid, Lahore",
     role: "Game Developer",
     period: "Apr 2022 - Feb 2024",
-    description: "Built multiplayer systems, AI bots, localization, and gameplay features for shipped Unity titles."
+    description: "Built multiplayer systems, AI bots, localization, and gameplay features for shipped Unity titles.",
+    highlights: [
+      "Seamless online and offline flow with 200ms transition time",
+      "15+ AI behavior states for human-like bot play",
+      "5-language localization and 98% crash-free delivery"
+    ],
+    stack: ["Photon PUN2", "AI Systems", "Localization", "Gameplay"]
   },
   {
     company: "Game Train",
     location: "On-Site, Lahore",
     role: "Internee",
     period: "Jan 2022 - Apr 2022",
-    description: "Completed intensive game development training and ranked among the top participants."
+    description: "Completed intensive game development training and ranked among the top participants.",
+    highlights: [
+      "Ranked Top 3 among 50+ participants",
+      "Built 4 technical projects in Unity and C#",
+      "Scored 95% in technical and communication assessments"
+    ],
+    stack: ["Unity", "C#", "Architecture", "Bootcamp"]
   }
 ];
 
@@ -203,12 +243,16 @@ function Fireflies({ mouse, isLocked, level, explosions, shockwaveActive, shockw
   const vW = viewport.width / 2;
   const vH = viewport.height / 2;
 
-  // Pre-allocate a large pool of particles
-  const MAX_PARTICLES = 500;
+  // Pre-allocate a smaller, calmer pool of particles
+  const MAX_PARTICLES = 180;
   const particles = useMemo(() => {
     const positions = new Float32Array(MAX_PARTICLES * 3);
     const velocities = new Float32Array(MAX_PARTICLES * 3);
     const types = new Float32Array(MAX_PARTICLES); // 0: normal, 1: aggressive
+    const phases = new Float32Array(MAX_PARTICLES);
+    const speeds = new Float32Array(MAX_PARTICLES);
+    const radii = new Float32Array(MAX_PARTICLES);
+    const anchors = new Float32Array(MAX_PARTICLES * 2);
     
     for (let i = 0; i < MAX_PARTICLES; i++) {
       // Initialize off-screen to avoid static background dots
@@ -220,17 +264,22 @@ function Fireflies({ mouse, isLocked, level, explosions, shockwaveActive, shockw
       velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.02;
       velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.02;
       
-      types[i] = Math.random() > 0.8 ? 1 : 0;
+      types[i] = Math.random() > 0.88 ? 1 : 0;
+      phases[i] = Math.random() * Math.PI * 2;
+      speeds[i] = 0.35 + Math.random() * 0.85;
+      radii[i] = 0.2 + Math.random() * 0.9;
+      anchors[i * 2] = (Math.random() - 0.5) * 1.8;
+      anchors[i * 2 + 1] = (Math.random() - 0.5) * 1.5;
     }
-    return { positions, velocities, types };
+    return { positions, velocities, types, phases, speeds, radii, anchors };
   }, []);
 
   useFrame((state, delta) => {
-    const { positions, velocities, types } = particles;
+    const { positions, velocities, types, phases, speeds, radii, anchors } = particles;
     const time = state.clock.getElapsedTime();
     
     // Current active count based on level
-    const activeCount = Math.min(MAX_PARTICLES, 150 + Math.floor(level) * 40);
+    const activeCount = Math.min(MAX_PARTICLES, 28 + Math.floor(level) * 12);
 
     // Global Shockwave logic
     if (shockwaveRef.current && shockwaveActive) {
@@ -289,80 +338,99 @@ function Fireflies({ mouse, isLocked, level, explosions, shockwaveActive, shockw
 
     if (explosions.length === 0) processedExplosions.current.clear();
 
-    // Environmental Effect: Camera Shake at high threat
-    if (level > 6) {
-      camera.position.x = Math.sin(time * 20) * (level - 6) * 0.01;
-      camera.position.y = Math.cos(time * 20) * (level - 6) * 0.01;
+    // Environmental Effect: subtle camera shake at high threat
+    if (level > 7) {
+      camera.position.x = Math.sin(time * 18) * (level - 7) * 0.004;
+      camera.position.y = Math.cos(time * 18) * (level - 7) * 0.004;
     } else {
       camera.position.x = 0;
       camera.position.y = 0;
     }
 
+    const maxDistance = Math.max(vW, vH) * 1.7;
+    const maxDistanceSq = maxDistance * maxDistance;
+
     for (let i = 0; i < MAX_PARTICLES; i++) {
       const i3 = i * 3;
+      const i2 = i * 2;
       
       // Handle active/inactive state
       if (i >= activeCount) {
         positions[i3 + 1] = 1000; // Move far off-screen
         continue;
       } else if (positions[i3 + 1] > 500) {
-        // Just became active, spawn at edge
-        const angle = Math.random() * Math.PI * 2;
-        const radius = Math.max(vW, vH) * 1.5;
-        positions[i3] = Math.cos(angle) * radius;
-        positions[i3 + 1] = Math.sin(angle) * radius;
+        // Just became active, spawn around a soft anchor point
+        const anchorX = anchors[i2] * vW * 0.9;
+        const anchorY = anchors[i2 + 1] * vH * 0.85;
+        positions[i3] = anchorX + (Math.random() - 0.5) * vW * 0.12;
+        positions[i3 + 1] = anchorY + (Math.random() - 0.5) * vH * 0.12;
+        velocities[i3] = (Math.random() - 0.5) * 0.02;
+        velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
       }
 
       const isAggressive = types[i] === 1 && level > 4;
       
       // Respawn logic (if drifted too far)
       const distSq = positions[i3] * positions[i3] + positions[i3 + 1] * positions[i3 + 1];
-      if (distSq > 625) { // 25^2
-        const angle = Math.random() * Math.PI * 2;
-        const radius = Math.max(vW, vH) * 1.5;
-        positions[i3] = Math.cos(angle) * radius;
-        positions[i3 + 1] = Math.sin(angle) * radius;
-        velocities[i3] = -Math.cos(angle) * 0.08;
-        velocities[i3 + 1] = -Math.sin(angle) * 0.08;
+      if (distSq > maxDistanceSq) {
+        const anchorX = anchors[i2] * vW * 0.9;
+        const anchorY = anchors[i2 + 1] * vH * 0.85;
+        positions[i3] = anchorX;
+        positions[i3 + 1] = anchorY;
+        velocities[i3] = 0;
+        velocities[i3 + 1] = 0;
       }
 
-      // Normal behavior
-      let targetX = mouse.current[0] * vW;
-      let targetY = mouse.current[1] * vH;
+      const anchorX = anchors[i2] * vW * 0.9;
+      const anchorY = anchors[i2 + 1] * vH * 0.85;
+      const flutterX =
+        Math.sin(time * (0.35 + speeds[i] * 0.25) + phases[i]) * (radii[i] * 0.55 + level * 0.025) +
+        Math.sin(time * (0.18 + speeds[i] * 0.1) + phases[i] * 1.9) * vW * 0.03;
+      const flutterY =
+        Math.cos(time * (0.4 + speeds[i] * 0.22) + phases[i] * 1.3) * (radii[i] * 0.45 + level * 0.02) +
+        Math.cos(time * (0.2 + speeds[i] * 0.1) + phases[i] * 1.6) * vH * 0.025;
 
-      if (level > 2 && !shockwaveActive) {
-        const swarmRadius = level > 5 ? vW * 0.8 : vW * 0.5;
-        targetX = Math.sin(i * 0.1 + time * (0.2 + level * 0.05)) * swarmRadius;
-        targetY = Math.cos(i * 0.1 + time * (0.2 + level * 0.05)) * swarmRadius;
-        
-        // Aggressive flies chase mouse even in swarm mode
-        if (isAggressive) {
-          targetX = mouse.current[0] * vW;
-          targetY = mouse.current[1] * vH;
-        }
+      let targetX = anchorX + flutterX;
+      let targetY = anchorY + flutterY;
+
+      if (isLocked && !shockwaveActive) {
+        const mousePull = isAggressive ? 0.62 : 0.35;
+        targetX = THREE.MathUtils.lerp(targetX, mouse.current[0] * vW, mousePull);
+        targetY = THREE.MathUtils.lerp(targetY, mouse.current[1] * vH, mousePull);
+      } else if (isAggressive && !shockwaveActive) {
+        targetX = THREE.MathUtils.lerp(targetX, mouse.current[0] * vW, 0.18);
+        targetY = THREE.MathUtils.lerp(targetY, mouse.current[1] * vH, 0.18);
       }
 
-      let attractionStrength = isLocked ? 0.0006 * level : 0.0001;
-      if (isAggressive) attractionStrength *= 1.5;
+      let attractionStrength = isLocked ? 0.001 + level * 0.00012 : 0.00022;
+      if (isAggressive) attractionStrength *= 1.25;
       
       if (!shockwaveActive) {
         velocities[i3] += (targetX - positions[i3]) * attractionStrength;
         velocities[i3 + 1] += (targetY - positions[i3 + 1]) * attractionStrength;
       }
 
-      // Speed increases with level
-      const driftScale = 0.005 + (level * 0.001);
+      const driftScale = 0.0018 + level * 0.0003;
       velocities[i3] += (Math.random() - 0.5) * driftScale;
       velocities[i3 + 1] += (Math.random() - 0.5) * driftScale;
 
-      positions[i3] += velocities[i3];
-      positions[i3 + 1] += velocities[i3 + 1];
-      positions[i3 + 2] += velocities[i3 + 2];
+      const speed = Math.hypot(velocities[i3], velocities[i3 + 1]);
+      const maxSpeed = (isLocked ? 0.08 : 0.035) + level * 0.004;
+      if (speed > maxSpeed) {
+        const scale = maxSpeed / speed;
+        velocities[i3] *= scale;
+        velocities[i3 + 1] *= scale;
+      }
 
-      const friction = 0.96 - (level * 0.002); // Less friction = more chaotic/fast
-      velocities[i3] *= Math.max(0.9, friction);
-      velocities[i3 + 1] *= Math.max(0.9, friction);
-      velocities[i3 + 2] *= Math.max(0.9, friction);
+      positions[i3] += velocities[i3] * delta * 60;
+      positions[i3 + 1] += velocities[i3 + 1] * delta * 60;
+      positions[i3 + 2] += velocities[i3 + 2] * delta * 60;
+
+      const friction = Math.max(0.88, 0.95 - level * 0.003);
+      const damping = Math.pow(friction, delta * 60);
+      velocities[i3] *= damping;
+      velocities[i3 + 1] *= damping;
+      velocities[i3 + 2] *= damping;
     }
     if (!meshRef.current) return;
     meshRef.current.geometry.attributes.position.needsUpdate = true;
@@ -373,12 +441,12 @@ function Fireflies({ mouse, isLocked, level, explosions, shockwaveActive, shockw
       <Points ref={meshRef} positions={particles.positions} stride={3} frustumCulled={false}>
         <PointMaterial
           transparent
-          color={level > 5 ? "#ff2200" : "#facc15"}
-          size={level > 4 ? 0.14 : 0.09}
+          color={level > 5 ? "#fb7185" : "#fde047"}
+          size={level > 4 ? 0.11 : 0.07}
           sizeAttenuation={true}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
-          opacity={level > 3 ? 0.9 : 0.6}
+          opacity={level > 3 ? 0.72 : 0.5}
         />
       </Points>
       
@@ -619,8 +687,17 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Atmospheric Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.12),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(56,189,248,0.12),transparent_24%),radial-gradient(circle_at_80%_80%,rgba(244,114,182,0.08),transparent_26%)]" />
+        <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="absolute left-[8%] top-[10%] h-56 w-56 rounded-full bg-yellow-400/10 blur-3xl" />
+        <div className="absolute right-[12%] top-[18%] h-64 w-64 rounded-full bg-sky-400/10 blur-3xl" />
+        <div className="absolute bottom-[8%] right-[20%] h-72 w-72 rounded-full bg-rose-400/10 blur-3xl" />
+      </div>
+
       {/* Three.js Background */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-[1] pointer-events-none">
         <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
           <Suspense fallback={null}>
             <Fireflies 
@@ -813,21 +890,54 @@ export default function App() {
           {/* Experience Section */}
           <section id="experience" className="mb-40">
             <div className="flex items-center gap-4 mb-12">
-              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Deployment History</h2>
+              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Professional Experience</h2>
               <div className="h-[1px] flex-1 bg-white/5" />
             </div>
-            <div className="space-y-16">
+            <div className="grid grid-cols-2 gap-4 mb-10 xl:grid-cols-4">
+              {EXPERIENCE_STATS.map((stat) => (
+                <div key={stat.label} className="glass-card p-6">
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-2">{stat.value}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-500">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-8">
               {EXPERIENCE.map((exp, idx) => (
-                <div key={idx} className="relative pl-8 border-l border-white/5">
-                  <div className="absolute -left-[5px] top-0 w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_10px_#facc15]" />
-                  <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
-                    <h3 className="text-2xl font-semibold text-white">{exp.role}</h3>
-                    <span className="font-mono text-xs text-slate-500 uppercase tracking-widest">{exp.period}</span>
+                <div key={idx} className="glass-card relative overflow-hidden p-8 md:p-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/8 via-transparent to-sky-400/6" />
+                  <div className="absolute left-0 top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-yellow-400/30 to-transparent" />
+                  <div className="relative flex flex-col gap-8 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="max-w-2xl">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-5">
+                        <h3 className="text-2xl md:text-3xl font-semibold text-white">{exp.role}</h3>
+                        <span className="font-mono text-[10px] text-slate-500 uppercase tracking-[0.25em]">{exp.period}</span>
+                      </div>
+                      <div className="text-yellow-400/70 font-mono text-[10px] uppercase tracking-[0.2em] mb-5">
+                        {exp.company} // {exp.location}
+                      </div>
+                      <p className="text-slate-300 leading-relaxed max-w-2xl mb-6">{exp.description}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {exp.stack.map((item) => (
+                          <span
+                            key={item}
+                            className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-300"
+                          >
+                            {item}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid gap-3 xl:w-[22rem]">
+                      {exp.highlights.map((highlight) => (
+                        <div
+                          key={highlight}
+                          className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm leading-relaxed text-slate-300"
+                        >
+                          {highlight}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="text-yellow-400/60 font-mono text-[10px] uppercase tracking-[0.2em] mb-6">
-                    {exp.company} {exp.location ? `// ${exp.location}` : ""}
-                  </div>
-                  <p className="text-slate-400 leading-relaxed max-w-2xl">{exp.description}</p>
                 </div>
               ))}
             </div>
