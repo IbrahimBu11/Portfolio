@@ -8,6 +8,8 @@ import {
   Linkedin, 
   Mail, 
   Zap, 
+  ChevronLeft,
+  ChevronRight,
   User, 
   FolderCode, 
   MessageSquare, 
@@ -441,6 +443,18 @@ export default function App() {
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   
   const mouse = useRef<[number, number]>([0, 0]);
+  const projectsScrollerRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollProjects = (direction: 1 | -1) => {
+    const container = projectsScrollerRef.current;
+    if (!container) return;
+
+    const scrollAmount = Math.max(container.clientWidth * 0.85, 320);
+    container.scrollBy({
+      left: scrollAmount * direction,
+      behavior: 'smooth'
+    });
+  };
 
   // Difficulty scaling over time
   useEffect(() => {
@@ -839,13 +853,34 @@ export default function App() {
 
           {/* Projects Section */}
           <section id="projects" className="mb-40">
-            <div className="flex items-center gap-4 mb-12">
-              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Mission Log</h2>
-              <div className="h-[1px] flex-1 bg-white/5" />
+            <div className="flex flex-col gap-6 mb-12 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Mission Log</h2>
+                <div className="h-[1px] flex-1 bg-white/5" />
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => scrollProjects(-1)}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
+                >
+                  <ChevronLeft size={14} />
+                  Back
+                </button>
+                <button
+                  onClick={() => scrollProjects(1)}
+                  className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                >
+                  More
+                  <ChevronRight size={14} />
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-1 gap-20">
+            <div
+              ref={projectsScrollerRef}
+              className="no-scrollbar flex gap-8 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 pr-8"
+            >
               {PROJECTS.map((project) => (
-                <div key={project.id} className="group">
+                <div key={project.id} className="group min-w-[88%] snap-start md:min-w-[44rem] xl:min-w-[48rem]">
                   <div className="relative aspect-video rounded-3xl overflow-hidden mb-8 border border-white/5">
                     <img src={project.image} alt={project.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-all" />
