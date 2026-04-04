@@ -88,21 +88,24 @@ interface Achievement {
 const EXPERIENCE = [
   {
     company: "Devsinc",
+    location: "Hybrid, Lahore",
     role: "Senior Software Engineer",
-    period: "2022 - Present",
-    description: "Leading multiplayer game teams focused on Unity architecture, Photon Fusion, and scalable backend systems."
+    period: "Feb 2025 - Present",
+    description: "Architecting multiplayer titles with Photon PUN2/Fusion, Azure, and PlayFab."
   },
   {
-    company: "Sacred Tails",
-    role: "Lead Gameplay Engineer",
-    period: "2021 - 2022",
-    description: "Built core combat and backend systems for a blockchain multiplayer card game on Sei."
-  },
-  {
-    company: "Freelance",
+    company: "Katana Games",
+    location: "Hybrid, Lahore",
     role: "Game Developer",
-    period: "2019 - 2021",
-    description: "Shipped titles including Triple Hand Poker, Daleela, Robot Ring Fighting, and Funny Shooter."
+    period: "Apr 2022 - Feb 2024",
+    description: "Built multiplayer systems, AI bots, localization, and gameplay features for shipped Unity titles."
+  },
+  {
+    company: "Game Train",
+    location: "On-Site, Lahore",
+    role: "Internee",
+    period: "Jan 2022 - Apr 2022",
+    description: "Completed intensive game development training and ranked among the top participants."
   }
 ];
 
@@ -807,7 +810,9 @@ export default function App() {
                     <h3 className="text-2xl font-semibold text-white">{exp.role}</h3>
                     <span className="font-mono text-xs text-slate-500 uppercase tracking-widest">{exp.period}</span>
                   </div>
-                  <div className="text-yellow-400/60 font-mono text-[10px] uppercase tracking-[0.2em] mb-6">{exp.company}</div>
+                  <div className="text-yellow-400/60 font-mono text-[10px] uppercase tracking-[0.2em] mb-6">
+                    {exp.company} {exp.location ? `// ${exp.location}` : ""}
+                  </div>
                   <p className="text-slate-400 leading-relaxed max-w-2xl">{exp.description}</p>
                 </div>
               ))}
