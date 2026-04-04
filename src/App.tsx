@@ -71,6 +71,7 @@ interface Project {
   summary: string;
   techs: (keyof typeof TECH_SVGS)[];
   image: string;
+  videoUrl?: string;
   websiteUrl?: string;
   mediaUrl?: string;
   mediaLabel?: string;
@@ -118,7 +119,8 @@ const PROJECTS: Project[] = [
     shortDesc: "Blockchain Card Battler.",
     summary: "Built combat systems, Sei integration, and backend features for a multiplayer card game.",
     techs: ["unity", "azure", "docker"],
-    image: "https://picsum.photos/seed/sacredtails/800/450",
+    image: "https://img.youtube.com/vi/ie_Wk76ySac/hqdefault.jpg",
+    videoUrl: "https://www.youtube.com/embed/ie_Wk76ySac",
     websiteUrl: "https://www.sacredtails.com/",
     mediaUrl: "https://www.youtube.com/watch?v=ie_Wk76ySac",
     mediaLabel: "YouTube"
@@ -129,7 +131,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Multiplayer Poker Game.",
     summary: "Built a 6-player poker game with smooth online and offline flow plus custom hand evaluation.",
     techs: ["unity", "photon", "csharp"],
-    image: "https://picsum.photos/seed/poker/800/450",
+    image: "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/79/bf/27/79bf27f9-43a3-1766-ec41-7b5e7c4defc1/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/1200x630wa.jpg",
     websiteUrl: "https://triplehandpoker.com/",
     mediaUrl: "https://apps.apple.com/us/app/triple-hand-poker/id6449002117?platform=ipad",
     mediaLabel: "Store"
@@ -140,7 +142,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Educational Mobile Experience.",
     summary: "Delivered an accessible UNICEF mobile experience with guided, user-friendly interactions.",
     techs: ["unity", "csharp"],
-    image: "https://picsum.photos/seed/daleela/800/450",
+    image: "https://www.unicef.org/lebanon/sites/unicef.org.lebanon/files/styles/hero_extended/public/Untitled-1_6.webp?itok=JlE1rQSl",
     websiteUrl: "https://www.unicef.org/lebanon/daleela",
     mediaUrl: "https://play.google.com/store/apps/details?id=com.unicef.daleela&hl=en&pli=1",
     mediaLabel: "Store"
@@ -151,7 +153,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Arcade Mobile Fighting Game.",
     summary: "Built combat gameplay, enemy encounters, and mobile-focused tuning for an action title.",
     techs: ["unity", "csharp"],
-    image: "https://picsum.photos/seed/robotring/800/450",
+    image: "https://cdn.soft112.com/robot-fighting-games-kungfu-3d/00/00/0H/S0/00000HS0XA/pad_screenshot.png",
     mediaUrl: "https://play.google.com/store/apps/details?id=com.gamex.robot.ring.fighting.games",
     mediaLabel: "Store"
   },
@@ -161,7 +163,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Web Shooter.",
     summary: "Optimized browser-based shooter gameplay for fast loading and responsive WebGL performance.",
     techs: ["unity", "csharp"],
-    image: "https://picsum.photos/seed/funnyshooter/800/450",
+    image: "https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=314,height=314,fit=cover,f=auto/894abba63a6b23fed823f404831f444f/funny-shooter-2.jpeg",
     mediaUrl: "https://poki.com/en/g/funny-shooter-2",
     mediaLabel: "Play"
   }
@@ -433,6 +435,7 @@ export default function App() {
   const [lastKills, setLastKills] = useState<number[]>([]);
   const [screenFlash, setScreenFlash] = useState(false);
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
+  const [activeVideo, setActiveVideo] = useState<string | null>(null);
   
   const mouse = useRef<[number, number]>([0, 0]);
 
@@ -845,7 +848,14 @@ export default function App() {
                     {/* Project Interaction Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
                       <div className="flex gap-4">
-                        {project.mediaUrl && (
+                        {project.videoUrl ? (
+                          <button
+                            onClick={() => setActiveVideo(project.videoUrl!)}
+                            className="p-4 rounded-full bg-yellow-400 text-black hover:scale-110 transition-transform shadow-xl"
+                          >
+                            <Zap size={24} fill="currentColor" />
+                          </button>
+                        ) : project.mediaUrl && (
                           <a 
                             href={project.mediaUrl}
                             target="_blank"
@@ -894,7 +904,15 @@ export default function App() {
                         Website
                       </a>
                     )}
-                    {project.mediaUrl && (
+                    {project.videoUrl ? (
+                      <button
+                        onClick={() => setActiveVideo(project.videoUrl!)}
+                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                      >
+                        <Zap size={14} />
+                        {project.mediaLabel}
+                      </button>
+                    ) : project.mediaUrl && (
                       <a
                         href={project.mediaUrl}
                         target="_blank"
@@ -959,6 +977,38 @@ export default function App() {
           </div>
         </div>
       </div>
+      <AnimatePresence>
+        {activeVideo && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-20"
+            onClick={() => setActiveVideo(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button 
+                onClick={() => setActiveVideo(null)}
+                className="absolute top-6 right-6 z-10 p-2 bg-black/50 hover:bg-black text-white rounded-full transition-colors"
+              >
+                <Zap size={20} className="rotate-45" />
+              </button>
+              <iframe 
+                src={activeVideo} 
+                className="w-full h-full" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
