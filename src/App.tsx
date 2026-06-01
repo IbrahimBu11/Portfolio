@@ -20,6 +20,13 @@ import {
   Globe,
   ExternalLink
 } from 'lucide-react';
+import sacredTailsImage from './assets/portfolio/sacred-tails-01.png';
+import tripleHandPokerImage from './assets/portfolio/triple-hand-poker.png';
+import daleelaImage from './assets/portfolio/daleela.png';
+import robotRingFightingImage from './assets/portfolio/robot-ring-fighting.png';
+import mafiaShootoutImage from './assets/portfolio/mafia-shootout.png';
+import policeDogSimulatorImage from './assets/portfolio/police-dog-simulator.png';
+import topPerformerCertificate from './assets/portfolio/top-performer-certificate.png';
 
 // --- SVG Tech Icons ---
 const TECH_SVGS = {
@@ -101,6 +108,14 @@ interface ExperienceStat {
   label: string;
 }
 
+interface CertificateEntry {
+  id: string;
+  title: string;
+  issuer: string;
+  description: string;
+  image: string;
+}
+
 // --- Constants & Data ---
 const EXPERIENCE_STATS: ExperienceStat[] = [
   { value: "4+", label: "Years In Game Dev" },
@@ -164,7 +179,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Blockchain Card Battler.",
     summary: "Built combat systems, Sei integration, and backend features for a multiplayer card game.",
     techs: ["unity", "azure", "docker"],
-    image: "https://img.youtube.com/vi/ie_Wk76ySac/hqdefault.jpg",
+    image: sacredTailsImage,
     videoUrl: "https://www.youtube.com/embed/ie_Wk76ySac",
     websiteUrl: "https://www.sacredtails.com/",
     mediaUrl: "https://www.youtube.com/watch?v=ie_Wk76ySac",
@@ -176,7 +191,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Multiplayer Poker Game.",
     summary: "Built a 6-player poker game with smooth online and offline flow plus custom hand evaluation.",
     techs: ["unity", "photon", "csharp"],
-    image: "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/79/bf/27/79bf27f9-43a3-1766-ec41-7b5e7c4defc1/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/1200x630wa.jpg",
+    image: tripleHandPokerImage,
     websiteUrl: "https://triplehandpoker.com/",
     mediaUrl: "https://apps.apple.com/us/app/triple-hand-poker/id6449002117?platform=ipad",
     mediaLabel: "Store"
@@ -187,7 +202,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Educational Mobile Experience.",
     summary: "Delivered an accessible UNICEF mobile experience with guided, user-friendly interactions.",
     techs: ["unity", "csharp"],
-    image: "https://www.unicef.org/lebanon/sites/unicef.org.lebanon/files/styles/hero_extended/public/Untitled-1_6.webp?itok=JlE1rQSl",
+    image: daleelaImage,
     websiteUrl: "https://www.unicef.org/lebanon/daleela",
     mediaUrl: "https://play.google.com/store/apps/details?id=com.unicef.daleela&hl=en&pli=1",
     mediaLabel: "Store"
@@ -198,19 +213,37 @@ const PROJECTS: Project[] = [
     shortDesc: "Arcade Mobile Fighting Game.",
     summary: "Built combat gameplay, enemy encounters, and mobile-focused tuning for an action title.",
     techs: ["unity", "csharp"],
-    image: "https://cdn.soft112.com/robot-fighting-games-kungfu-3d/00/00/0H/S0/00000HS0XA/pad_screenshot.png",
+    image: robotRingFightingImage,
     mediaUrl: "https://play.google.com/store/apps/details?id=com.gamex.robot.ring.fighting.games",
     mediaLabel: "Store"
   },
   {
     id: 5,
-    title: "Funny Shooter 2",
-    shortDesc: "Web Shooter.",
-    summary: "Optimized browser-based shooter gameplay for fast loading and responsive WebGL performance.",
+    title: "Mafia Shootout",
+    shortDesc: "Wild West Action Shooter.",
+    summary: "Worked on fast-action combat, encounter feel, and arcade pacing for a western-themed shooter experience shown in the CV board.",
     techs: ["unity", "csharp"],
-    image: "https://img.poki-cdn.com/cdn-cgi/image/q=78,scq=50,width=314,height=314,fit=cover,f=auto/894abba63a6b23fed823f404831f444f/funny-shooter-2.jpeg",
-    mediaUrl: "https://poki.com/en/g/funny-shooter-2",
-    mediaLabel: "Play"
+    image: mafiaShootoutImage,
+    mediaLabel: "Portfolio"
+  },
+  {
+    id: 6,
+    title: "Police Dog Simulator",
+    shortDesc: "Open World Simulator.",
+    summary: "Contributed to gameplay systems and mission-oriented open-world interactions for a simulator title featured in the Figma portfolio.",
+    techs: ["unity", "csharp"],
+    image: policeDogSimulatorImage,
+    mediaLabel: "Portfolio"
+  }
+];
+
+const CERTIFICATES: CertificateEntry[] = [
+  {
+    id: "top-performer",
+    title: "Top Performer",
+    issuer: "Katana Games",
+    description: "Recognition highlighted in the Figma CV board. Added here without changing the original portfolio style, so the certificate lives alongside projects and experience.",
+    image: topPerformerCertificate
   }
 ];
 
@@ -660,6 +693,7 @@ export default function App() {
     { id: 'experience', label: 'EXPERIENCE', icon: <Briefcase size={18} /> },
     { id: 'skills', label: 'SKILLS', icon: <Settings size={18} /> },
     { id: 'projects', label: 'PROJECTS', icon: <FolderCode size={18} /> },
+    { id: 'certificates', label: 'CERTS', icon: <Trophy size={18} /> },
     { id: 'contact', label: 'CONTACT', icon: <MessageSquare size={18} /> },
   ];
 
@@ -1073,6 +1107,40 @@ export default function App() {
                         {project.mediaLabel}
                       </a>
                     )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Certificates Section */}
+          <section id="certificates" className="mb-40">
+            <div className="flex items-center gap-4 mb-12">
+              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Credentials</h2>
+              <div className="h-[1px] flex-1 bg-white/5" />
+            </div>
+            <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+              {CERTIFICATES.map((certificate) => (
+                <div key={certificate.id} className="glass-card overflow-hidden">
+                  <div className="grid xl:grid-cols-[1.15fr_0.85fr]">
+                    <div className="bg-white p-4 md:p-6">
+                      <img
+                        src={certificate.image}
+                        alt={`${certificate.title} certificate`}
+                        className="w-full rounded-2xl object-contain"
+                      />
+                    </div>
+                    <div className="p-8 md:p-10 flex flex-col justify-center">
+                      <div className="text-yellow-400/70 font-mono text-[10px] uppercase tracking-[0.2em] mb-5">
+                        {certificate.issuer}
+                      </div>
+                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-5">{certificate.title}</h3>
+                      <p className="text-slate-300 leading-relaxed mb-6">{certificate.description}</p>
+                      <div className="inline-flex w-fit items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400">
+                        <Trophy size={14} />
+                        Featured Credential
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
