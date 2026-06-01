@@ -8,8 +8,6 @@ import {
   Linkedin, 
   Mail, 
   Zap, 
-  ChevronLeft,
-  ChevronRight,
   User, 
   FolderCode, 
   MessageSquare, 
@@ -21,12 +19,26 @@ import {
   ExternalLink
 } from 'lucide-react';
 import sacredTailsImage from './assets/portfolio/sacred-tails-01.png';
+import sacredTailsImageTwo from './assets/portfolio/sacred-tails-02.png';
+import sacredTailsImageThree from './assets/portfolio/sacred-tails-03.png';
 import tripleHandPokerImage from './assets/portfolio/triple-hand-poker.png';
+import tripleHandPokerImageTwo from './assets/portfolio/triple-hand-poker-02.png';
+import tripleHandPokerImageThree from './assets/portfolio/triple-hand-poker-03.png';
 import daleelaImage from './assets/portfolio/daleela.png';
+import daleelaImageTwo from './assets/portfolio/daleela-02.png';
+import daleelaImageThree from './assets/portfolio/daleela-03.png';
 import robotRingFightingImage from './assets/portfolio/robot-ring-fighting.png';
+import robotRingFightingImageTwo from './assets/portfolio/robot-ring-fighting-02.png';
+import robotRingFightingImageThree from './assets/portfolio/robot-ring-fighting-03.png';
 import mafiaShootoutImage from './assets/portfolio/mafia-shootout.png';
+import mafiaShootoutImageTwo from './assets/portfolio/mafia-shootout-02.png';
+import mafiaShootoutImageThree from './assets/portfolio/mafia-shootout-03.png';
 import policeDogSimulatorImage from './assets/portfolio/police-dog-simulator.png';
+import policeDogSimulatorImageTwo from './assets/portfolio/police-dog-simulator-02.png';
+import policeDogSimulatorImageThree from './assets/portfolio/police-dog-simulator-03.png';
 import topPerformerCertificate from './assets/portfolio/top-performer-certificate.png';
+import aceOfInnovationCertificate from './assets/portfolio/ace-of-innovation.png';
+import hyperHelperCertificate from './assets/portfolio/hyper-helper.png';
 
 // --- SVG Tech Icons ---
 const TECH_SVGS = {
@@ -79,7 +91,7 @@ interface Project {
   shortDesc: string;
   summary: string;
   techs: (keyof typeof TECH_SVGS)[];
-  image: string;
+  images: string[];
   videoUrl?: string;
   websiteUrl?: string;
   mediaUrl?: string;
@@ -114,6 +126,7 @@ interface CertificateEntry {
   issuer: string;
   description: string;
   image: string;
+  tag: string;
 }
 
 // --- Constants & Data ---
@@ -179,7 +192,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Blockchain Card Battler.",
     summary: "Built combat systems, Sei integration, and backend features for a multiplayer card game.",
     techs: ["unity", "azure", "docker"],
-    image: sacredTailsImage,
+    images: [sacredTailsImage, sacredTailsImageTwo, sacredTailsImageThree],
     videoUrl: "https://www.youtube.com/embed/ie_Wk76ySac",
     websiteUrl: "https://www.sacredtails.com/",
     mediaUrl: "https://www.youtube.com/watch?v=ie_Wk76ySac",
@@ -191,7 +204,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Multiplayer Poker Game.",
     summary: "Built a 6-player poker game with smooth online and offline flow plus custom hand evaluation.",
     techs: ["unity", "photon", "csharp"],
-    image: tripleHandPokerImage,
+    images: [tripleHandPokerImage, tripleHandPokerImageTwo, tripleHandPokerImageThree],
     websiteUrl: "https://triplehandpoker.com/",
     mediaUrl: "https://apps.apple.com/us/app/triple-hand-poker/id6449002117?platform=ipad",
     mediaLabel: "Store"
@@ -202,7 +215,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Educational Mobile Experience.",
     summary: "Delivered an accessible UNICEF mobile experience with guided, user-friendly interactions.",
     techs: ["unity", "csharp"],
-    image: daleelaImage,
+    images: [daleelaImage, daleelaImageTwo, daleelaImageThree],
     websiteUrl: "https://www.unicef.org/lebanon/daleela",
     mediaUrl: "https://play.google.com/store/apps/details?id=com.unicef.daleela&hl=en&pli=1",
     mediaLabel: "Store"
@@ -213,7 +226,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Arcade Mobile Fighting Game.",
     summary: "Built combat gameplay, enemy encounters, and mobile-focused tuning for an action title.",
     techs: ["unity", "csharp"],
-    image: robotRingFightingImage,
+    images: [robotRingFightingImage, robotRingFightingImageTwo, robotRingFightingImageThree],
     mediaUrl: "https://play.google.com/store/apps/details?id=com.gamex.robot.ring.fighting.games",
     mediaLabel: "Store"
   },
@@ -223,7 +236,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Wild West Action Shooter.",
     summary: "Worked on fast-action combat, encounter feel, and arcade pacing for a western-themed shooter experience shown in the CV board.",
     techs: ["unity", "csharp"],
-    image: mafiaShootoutImage,
+    images: [mafiaShootoutImage, mafiaShootoutImageTwo, mafiaShootoutImageThree],
     mediaLabel: "Portfolio"
   },
   {
@@ -232,7 +245,7 @@ const PROJECTS: Project[] = [
     shortDesc: "Open World Simulator.",
     summary: "Contributed to gameplay systems and mission-oriented open-world interactions for a simulator title featured in the Figma portfolio.",
     techs: ["unity", "csharp"],
-    image: policeDogSimulatorImage,
+    images: [policeDogSimulatorImage, policeDogSimulatorImageTwo, policeDogSimulatorImageThree],
     mediaLabel: "Portfolio"
   }
 ];
@@ -243,7 +256,24 @@ const CERTIFICATES: CertificateEntry[] = [
     title: "Top Performer",
     issuer: "Katana Games",
     description: "Recognition highlighted in the Figma CV board. Added here without changing the original portfolio style, so the certificate lives alongside projects and experience.",
-    image: topPerformerCertificate
+    image: topPerformerCertificate,
+    tag: "Performance"
+  },
+  {
+    id: "ace-of-innovation",
+    title: "Ace of Innovation",
+    issuer: "Recognition Badge",
+    description: "A second recognition graphic from the exported CV board, included so the credentials area reflects more of the original material.",
+    image: aceOfInnovationCertificate,
+    tag: "Innovation"
+  },
+  {
+    id: "hyper-helper",
+    title: "Hyper Helper",
+    issuer: "Recognition Badge",
+    description: "Additional achievement artwork from the CV board, surfaced here instead of leaving it hidden inside the design file.",
+    image: hyperHelperCertificate,
+    tag: "Support"
   }
 ];
 
@@ -544,18 +574,6 @@ export default function App() {
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   
   const mouse = useRef<[number, number]>([0, 0]);
-  const projectsScrollerRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollProjects = (direction: 1 | -1) => {
-    const container = projectsScrollerRef.current;
-    if (!container) return;
-
-    const scrollAmount = Math.max(container.clientWidth * 0.85, 320);
-    container.scrollBy({
-      left: scrollAmount * direction,
-      behavior: 'smooth'
-    });
-  };
 
   // Difficulty scaling over time
   useEffect(() => {
@@ -876,7 +894,7 @@ export default function App() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-64 relative z-10 p-12 md:p-20 max-w-6xl">
+      <main className="flex-1 ml-64 relative z-10 p-8 md:p-14 xl:p-20 max-w-none">
         
         {/* Content Mask */}
         <AnimatePresence>
@@ -997,116 +1015,74 @@ export default function App() {
 
           {/* Projects Section */}
           <section id="projects" className="mb-40">
-            <div className="flex flex-col gap-6 mb-12 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Mission Log</h2>
-                <div className="h-[1px] flex-1 bg-white/5" />
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => scrollProjects(-1)}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
-                >
-                  <ChevronLeft size={14} />
-                  Back
-                </button>
-                <button
-                  onClick={() => scrollProjects(1)}
-                  className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
-                >
-                  More
-                  <ChevronRight size={14} />
-                </button>
-              </div>
+            <div className="flex items-center gap-4 mb-12">
+              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Mission Log</h2>
+              <div className="h-[1px] flex-1 bg-white/5" />
             </div>
-            <div
-              ref={projectsScrollerRef}
-              className="no-scrollbar flex gap-8 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 pr-8"
-            >
+            <div className="space-y-8">
               {PROJECTS.map((project) => (
-                <div key={project.id} className="group min-w-[88%] snap-start md:min-w-[44rem] xl:min-w-[48rem]">
-                  <div className="relative aspect-video rounded-3xl overflow-hidden mb-8 border border-white/5">
-                    <img src={project.image} alt={project.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" referrerPolicy="no-referrer" />
-                    <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-all" />
-                    
-                    {/* Project Interaction Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
-                      <div className="flex gap-4">
-                        {project.videoUrl ? (
-                          <button
-                            onClick={() => setActiveVideo(project.videoUrl!)}
-                            className="p-4 rounded-full bg-yellow-400 text-black hover:scale-110 transition-transform shadow-xl"
-                          >
-                            <Zap size={24} fill="currentColor" />
-                          </button>
-                        ) : project.mediaUrl && (
-                          <a 
-                            href={project.mediaUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-4 rounded-full bg-yellow-400 text-black hover:scale-110 transition-transform shadow-xl"
-                          >
-                            <ExternalLink size={24} />
-                          </a>
-                        )}
-                        {project.websiteUrl && (
-                          <a 
-                            href={project.websiteUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="p-4 rounded-full bg-white text-black hover:scale-110 transition-transform shadow-xl"
-                          >
-                            <Globe size={24} />
-                          </a>
-                        )}
+                <div key={project.id} className="glass-card relative overflow-hidden p-6 md:p-8">
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/6 via-transparent to-sky-400/6" />
+                  <div className="relative">
+                    <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between mb-8">
+                      <div className="max-w-3xl">
+                        <h3 className="text-3xl md:text-4xl font-bold text-white mb-3">{project.title}</h3>
+                        <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400/70 mb-5">{project.shortDesc}</p>
+                        <p className="text-slate-300 leading-relaxed">{project.summary}</p>
+                      </div>
+                      <div className="flex flex-col gap-5 xl:items-end">
+                        <div className="flex gap-4">
+                          {project.techs.map((tech) => (
+                            <div key={tech} className="text-slate-600 hover:text-white transition-colors">
+                              {TECH_SVGS[tech]}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-wrap gap-3 xl:justify-end">
+                          {project.websiteUrl && (
+                            <a
+                              href={project.websiteUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
+                            >
+                              <Globe size={14} />
+                              Website
+                            </a>
+                          )}
+                          {project.videoUrl ? (
+                            <button
+                              onClick={() => setActiveVideo(project.videoUrl!)}
+                              className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                            >
+                              <Zap size={14} />
+                              {project.mediaLabel}
+                            </button>
+                          ) : project.mediaUrl && (
+                            <a
+                              href={project.mediaUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                            >
+                              <ExternalLink size={14} />
+                              {project.mediaLabel}
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-3xl font-bold text-white group-hover:text-yellow-400 transition-colors">{project.title}</h3>
-                      <p className="mt-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400/70">{project.shortDesc}</p>
-                    </div>
-                    <div className="flex gap-4">
-                      {project.techs.map(tech => (
-                        <div key={tech} className="text-slate-600 hover:text-white transition-colors">
-                          {TECH_SVGS[tech]}
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {project.images.map((image, imageIndex) => (
+                        <div key={`${project.id}-${imageIndex}`} className="relative aspect-video overflow-hidden rounded-3xl border border-white/5 bg-black/20">
+                          <img
+                            src={image}
+                            alt={`${project.title} screenshot ${imageIndex + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-[1.03]"
+                          />
                         </div>
                       ))}
                     </div>
-                  </div>
-                  <p className="text-slate-400 leading-relaxed max-w-2xl mb-8">{project.summary}</p>
-                  <div className="flex flex-wrap gap-3">
-                    {project.websiteUrl && (
-                      <a
-                        href={project.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
-                      >
-                        <Globe size={14} />
-                        Website
-                      </a>
-                    )}
-                    {project.videoUrl ? (
-                      <button
-                        onClick={() => setActiveVideo(project.videoUrl!)}
-                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
-                      >
-                        <Zap size={14} />
-                        {project.mediaLabel}
-                      </button>
-                    ) : project.mediaUrl && (
-                      <a
-                        href={project.mediaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
-                      >
-                        <ExternalLink size={14} />
-                        {project.mediaLabel}
-                      </a>
-                    )}
                   </div>
                 </div>
               ))}
@@ -1119,18 +1095,18 @@ export default function App() {
               <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Credentials</h2>
               <div className="h-[1px] flex-1 bg-white/5" />
             </div>
-            <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+            <div className="grid gap-8 xl:grid-cols-3">
               {CERTIFICATES.map((certificate) => (
                 <div key={certificate.id} className="glass-card overflow-hidden">
-                  <div className="grid xl:grid-cols-[1.15fr_0.85fr]">
+                  <div className="h-full flex flex-col">
                     <div className="bg-white p-4 md:p-6">
                       <img
                         src={certificate.image}
                         alt={`${certificate.title} certificate`}
-                        className="w-full rounded-2xl object-contain"
+                        className="w-full rounded-2xl object-contain aspect-[4/5]"
                       />
                     </div>
-                    <div className="p-8 md:p-10 flex flex-col justify-center">
+                    <div className="p-8 md:p-10 flex flex-1 flex-col justify-center">
                       <div className="text-yellow-400/70 font-mono text-[10px] uppercase tracking-[0.2em] mb-5">
                         {certificate.issuer}
                       </div>
@@ -1138,7 +1114,7 @@ export default function App() {
                       <p className="text-slate-300 leading-relaxed mb-6">{certificate.description}</p>
                       <div className="inline-flex w-fit items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400">
                         <Trophy size={14} />
-                        Featured Credential
+                        {certificate.tag}
                       </div>
                     </div>
                   </div>
@@ -1208,7 +1184,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+              className="relative w-full max-w-[min(92vw,1700px)] aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10"
               onClick={(e) => e.stopPropagation()}
             >
               <button 
