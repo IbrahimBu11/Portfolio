@@ -7,8 +7,8 @@ import {
   Github, 
   Linkedin, 
   Mail, 
-  Zap, 
-  User, 
+  Zap,
+  User,
   FolderCode, 
   MessageSquare, 
   Settings, 
@@ -18,27 +18,32 @@ import {
   Globe,
   ExternalLink
 } from 'lucide-react';
-import sacredTailsImage from './assets/portfolio/sacred-tails-01.png';
-import sacredTailsImageTwo from './assets/portfolio/sacred-tails-02.png';
-import sacredTailsImageThree from './assets/portfolio/sacred-tails-03.png';
-import tripleHandPokerImage from './assets/portfolio/triple-hand-poker.png';
-import tripleHandPokerImageTwo from './assets/portfolio/triple-hand-poker-02.png';
-import tripleHandPokerImageThree from './assets/portfolio/triple-hand-poker-03.png';
-import daleelaImage from './assets/portfolio/daleela.png';
-import daleelaImageTwo from './assets/portfolio/daleela-02.png';
-import daleelaImageThree from './assets/portfolio/daleela-03.png';
-import robotRingFightingImage from './assets/portfolio/robot-ring-fighting.png';
-import robotRingFightingImageTwo from './assets/portfolio/robot-ring-fighting-02.png';
-import robotRingFightingImageThree from './assets/portfolio/robot-ring-fighting-03.png';
-import mafiaShootoutImage from './assets/portfolio/mafia-shootout.png';
-import mafiaShootoutImageTwo from './assets/portfolio/mafia-shootout-02.png';
-import mafiaShootoutImageThree from './assets/portfolio/mafia-shootout-03.png';
-import policeDogSimulatorImage from './assets/portfolio/police-dog-simulator.png';
-import policeDogSimulatorImageTwo from './assets/portfolio/police-dog-simulator-02.png';
-import policeDogSimulatorImageThree from './assets/portfolio/police-dog-simulator-03.png';
-import topPerformerCertificate from './assets/portfolio/top-performer-certificate.png';
-import aceOfInnovationCertificate from './assets/portfolio/ace-of-innovation.png';
-import hyperHelperCertificate from './assets/portfolio/hyper-helper.png';
+import nanocry01 from './assets/portfolio/source/nanocry-01.webp';
+import nanocry02 from './assets/portfolio/source/nanocry-02.webp';
+import nanocry03 from './assets/portfolio/source/nanocry-03.webp';
+import nanocry04 from './assets/portfolio/source/nanocry-04.webp';
+import sacredTails01 from './assets/portfolio/source/sacred-tails-01.webp';
+import sacredTails02 from './assets/portfolio/source/sacred-tails-02.webp';
+import sacredTails03 from './assets/portfolio/source/sacred-tails-03.webp';
+import sacredTails04 from './assets/portfolio/source/sacred-tails-04.webp';
+import tripleHandPoker01 from './assets/portfolio/source/triple-hand-poker-01.webp';
+import tripleHandPoker02 from './assets/portfolio/source/triple-hand-poker-02.webp';
+import tripleHandPoker03 from './assets/portfolio/source/triple-hand-poker-03.webp';
+import daleela01 from './assets/portfolio/source/daleela-01.webp';
+import daleela02 from './assets/portfolio/source/daleela-02.webp';
+import daleela03 from './assets/portfolio/source/daleela-03.webp';
+import funnyShooter01 from './assets/portfolio/source/funny-shooter-01.webp';
+import funnyShooter02 from './assets/portfolio/source/funny-shooter-02.webp';
+import funnyShooter03 from './assets/portfolio/source/funny-shooter-03.webp';
+import cowboyShooter01 from './assets/portfolio/source/cowboy-shooter-01.webp';
+import cowboyShooter02 from './assets/portfolio/source/cowboy-shooter-02.webp';
+import cowboyShooter03 from './assets/portfolio/source/cowboy-shooter-03.webp';
+import kungFuKarate01 from './assets/portfolio/source/kung-fu-karate-01.webp';
+import kungFuKarate02 from './assets/portfolio/source/kung-fu-karate-02.webp';
+import kungFuKarate03 from './assets/portfolio/source/kung-fu-karate-03.webp';
+import usPoliceDog01 from './assets/portfolio/source/us-police-dog-01.webp';
+import usPoliceDog02 from './assets/portfolio/source/us-police-dog-02.webp';
+import usPoliceDog03 from './assets/portfolio/source/us-police-dog-03.webp';
 
 // --- SVG Tech Icons ---
 const TECH_SVGS = {
@@ -93,6 +98,7 @@ interface Project {
   techs: (keyof typeof TECH_SVGS)[];
   images: string[];
   videoUrl?: string;
+  status?: string;
   websiteUrl?: string;
   mediaUrl?: string;
   mediaLabel?: string;
@@ -120,15 +126,6 @@ interface ExperienceStat {
   label: string;
 }
 
-interface CertificateEntry {
-  id: string;
-  title: string;
-  issuer: string;
-  description: string;
-  image: string;
-  tag: string;
-}
-
 // --- Constants & Data ---
 const EXPERIENCE_STATS: ExperienceStat[] = [
   { value: "4+", label: "Years In Game Dev" },
@@ -145,7 +142,7 @@ const EXPERIENCE: ExperienceEntry[] = [
     period: "Feb 2025 - Present",
     description: "Architecting multiplayer titles with Photon PUN2/Fusion, Azure, and PlayFab.",
     highlights: [
-      "50+ concurrent players with 85ms average latency",
+      "100+ concurrent players at ~85ms average latency",
       "40% lower hosting costs through custom multiplayer pipeline",
       "1,000+ daily matches with sub-3 second queue times"
     ],
@@ -188,92 +185,103 @@ const SOCIAL_LINKS = {
 const PROJECTS: Project[] = [
   {
     id: 1,
+    title: "Nanocry",
+    shortDesc: "Multiplayer Battle Royale // Unity, Photon Fusion.",
+    summary: "Lead multiplayer developer architecting a 30+ player, server-authoritative battle royale on Photon Fusion. Lag compensation (hitbox buffering, KCC) cuts perceived latency by 40%, with Unity Multiplay matchmaking, dedicated servers, and a high-frequency sync system handling 150+ objects per frame.",
+    techs: ["unity", "photon", "csharp"],
+    images: [nanocry01, nanocry02, nanocry03, nanocry04],
+    status: "Under Development"
+  },
+  {
+    id: 2,
     title: "Sacred Tails",
-    shortDesc: "Blockchain Card Battler.",
-    summary: "Built combat systems, Sei integration, and backend features for a multiplayer card game.",
-    techs: ["unity", "azure", "docker"],
-    images: [sacredTailsImage, sacredTailsImageTwo, sacredTailsImageThree],
+    shortDesc: "Blockchain Multiplayer Card Game // Unity, Azure, Sei Chain.",
+    summary: "Full-stack developer on a 1v1 and tournament card game (300+ daily players) with NFT and Sei-blockchain wallet authentication, an Azure Functions + PlayFab backend, and turn-based combat backed by a real-time multiplayer lobby.",
+    techs: ["unity", "azure", "csharp"],
+    images: [sacredTails01, sacredTails02, sacredTails03, sacredTails04],
     videoUrl: "https://www.youtube.com/embed/ie_Wk76ySac",
     websiteUrl: "https://www.sacredtails.com/",
     mediaUrl: "https://www.youtube.com/watch?v=ie_Wk76ySac",
     mediaLabel: "YouTube"
   },
   {
-    id: 2,
+    id: 3,
     title: "Triple Hand Poker",
-    shortDesc: "Multiplayer Poker Game.",
-    summary: "Built a 6-player poker game with smooth online and offline flow plus custom hand evaluation.",
+    shortDesc: "6-Player Multiplayer Card Game // Unity, Photon.",
+    summary: "Solo developer of a real-time multiplayer poker game pushing 240+ state updates per minute, with custom networking and a card-evaluation engine validated to 100% accuracy across a 6-player table.",
     techs: ["unity", "photon", "csharp"],
-    images: [tripleHandPokerImage, tripleHandPokerImageTwo, tripleHandPokerImageThree],
+    images: [tripleHandPoker01, tripleHandPoker02, tripleHandPoker03],
     websiteUrl: "https://triplehandpoker.com/",
     mediaUrl: "https://apps.apple.com/us/app/triple-hand-poker/id6449002117?platform=ipad",
     mediaLabel: "Store"
   },
   {
-    id: 3,
+    id: 4,
     title: "Daleela",
-    shortDesc: "Educational Mobile Experience.",
-    summary: "Delivered an accessible UNICEF mobile experience with guided, user-friendly interactions.",
+    shortDesc: "Educational Mobile App // Unity, Mobile.",
+    summary: "Lead developer on a modular, multi-language education app teaching fundamentals to children aged 4–8 — 40+ interactive animations, child-friendly UI/UX, and progress tracking with reward mechanics that lifted session time by 65%.",
     techs: ["unity", "csharp"],
-    images: [daleelaImage, daleelaImageTwo, daleelaImageThree],
+    images: [daleela01, daleela02, daleela03],
     websiteUrl: "https://www.unicef.org/lebanon/daleela",
     mediaUrl: "https://play.google.com/store/apps/details?id=com.unicef.daleela&hl=en&pli=1",
     mediaLabel: "Store"
   },
   {
-    id: 4,
-    title: "Robot Ring Fighting",
-    shortDesc: "Arcade Mobile Fighting Game.",
-    summary: "Built combat gameplay, enemy encounters, and mobile-focused tuning for an action title.",
-    techs: ["unity", "csharp"],
-    images: [robotRingFightingImage, robotRingFightingImageTwo, robotRingFightingImageThree],
-    mediaUrl: "https://play.google.com/store/apps/details?id=com.gamex.robot.ring.fighting.games",
-    mediaLabel: "Store"
-  },
-  {
     id: 5,
-    title: "Mafia Shootout",
-    shortDesc: "Wild West Action Shooter.",
-    summary: "Worked on fast-action combat, encounter feel, and arcade pacing for a western-themed shooter experience shown in the CV board.",
+    title: "Funny Shooter",
+    shortDesc: "Web-Based FPS // Unity WebGL.",
+    summary: "Gameplay developer on a fast-paced WebGL FPS optimized to a 45MB download at 60fps, featuring projectile-based combat across 12 unique weapon types plus spectator and kill-cam replay modes.",
     techs: ["unity", "csharp"],
-    images: [mafiaShootoutImage, mafiaShootoutImageTwo, mafiaShootoutImageThree],
-    mediaLabel: "Portfolio"
+    images: [funnyShooter01, funnyShooter02, funnyShooter03],
+    mediaUrl: "https://poki.com/en/g/funny-shooter-2",
+    mediaLabel: "Play"
   },
   {
     id: 6,
-    title: "Police Dog Simulator",
-    shortDesc: "Open World Simulator.",
-    summary: "Contributed to gameplay systems and mission-oriented open-world interactions for a simulator title featured in the Figma portfolio.",
+    title: "Cowboy Shooter",
+    shortDesc: "Wild-West Action Shooter // Unity.",
+    summary: "Built fast, arcade-paced gunplay, enemy encounters, and combat feel for a stylized western shooter.",
     techs: ["unity", "csharp"],
-    images: [policeDogSimulatorImage, policeDogSimulatorImageTwo, policeDogSimulatorImageThree],
-    mediaLabel: "Portfolio"
+    images: [cowboyShooter01, cowboyShooter02, cowboyShooter03]
+  },
+  {
+    id: 7,
+    title: "Kung Fu Karate",
+    shortDesc: "3D Fighting Game // Unity, Mobile.",
+    summary: "Developed responsive melee combat, combo chaining, and AI opponents tuned for smooth mobile performance.",
+    techs: ["unity", "csharp"],
+    images: [kungFuKarate01, kungFuKarate02, kungFuKarate03]
+  },
+  {
+    id: 8,
+    title: "US Police Dog",
+    shortDesc: "Open-World Simulator // Unity, Mobile.",
+    summary: "Worked on gameplay systems for an open-world police K-9 simulator — mission-driven objectives, chase mechanics, and interactive city gameplay.",
+    techs: ["unity", "csharp"],
+    images: [usPoliceDog01, usPoliceDog02, usPoliceDog03]
   }
 ];
 
-const CERTIFICATES: CertificateEntry[] = [
+const SKILL_GROUPS: { category: string; skills: string[] }[] = [
   {
-    id: "top-performer",
-    title: "Top Performer",
-    issuer: "Katana Games",
-    description: "Recognition highlighted in the Figma CV board. Added here without changing the original portfolio style, so the certificate lives alongside projects and experience.",
-    image: topPerformerCertificate,
-    tag: "Performance"
+    category: "Networking & Multiplayer",
+    skills: ["Photon PUN2 / Fusion / Quantum", "Mirror", "EdgeGap", "NetCode", "Server-Authoritative Architecture", "Lag Compensation (Hitbox Buffering, KCC)", "Matchmaking", "Lobby Management"]
   },
   {
-    id: "ace-of-innovation",
-    title: "Ace of Innovation",
-    issuer: "Recognition Badge",
-    description: "A second recognition graphic from the exported CV board, included so the credentials area reflects more of the original material.",
-    image: aceOfInnovationCertificate,
-    tag: "Innovation"
+    category: "Backend & Cloud",
+    skills: ["PlayFab", "Azure Functions", "Azure Blob Storage", "Firebase", "Firestore", "Unity Multiplay", "REST APIs"]
   },
   {
-    id: "hyper-helper",
-    title: "Hyper Helper",
-    issuer: "Recognition Badge",
-    description: "Additional achievement artwork from the CV board, surfaced here instead of leaving it hidden inside the design file.",
-    image: hyperHelperCertificate,
-    tag: "Support"
+    category: "Game Development",
+    skills: ["Unity (C#)", "Performance Profiling", "Memory Optimization", "Mobile Optimization", "UFE2", "RFPS Kits"]
+  },
+  {
+    category: "Tools & Workflow",
+    skills: ["Git", "Rider", "Unity Profiler", "Trello", "Slack", "Jira"]
+  },
+  {
+    category: "Specialized",
+    skills: ["Blockchain Integration (NFT / Wallet)", "Turn-Based Combat Systems", "AI State Machines", "Localization"]
   }
 ];
 
@@ -706,18 +714,21 @@ export default function App() {
     });
   };
 
+  const [showAchievements, setShowAchievements] = useState(false);
+
   const navItems = [
-    { id: 'about', label: 'ABOUT', icon: <User size={18} /> },
-    { id: 'experience', label: 'EXPERIENCE', icon: <Briefcase size={18} /> },
-    { id: 'skills', label: 'SKILLS', icon: <Settings size={18} /> },
-    { id: 'projects', label: 'PROJECTS', icon: <FolderCode size={18} /> },
-    { id: 'certificates', label: 'CERTS', icon: <Trophy size={18} /> },
-    { id: 'contact', label: 'CONTACT', icon: <MessageSquare size={18} /> },
+    { id: 'about', label: 'ABOUT', icon: <User size={16} /> },
+    { id: 'experience', label: 'EXPERIENCE', icon: <Briefcase size={16} /> },
+    { id: 'skills', label: 'SKILLS', icon: <Settings size={16} /> },
+    { id: 'projects', label: 'PROJECTS', icon: <FolderCode size={16} /> },
+    { id: 'contact', label: 'CONTACT', icon: <MessageSquare size={16} /> },
   ];
+
+  const unlockedCount = achievements.filter(a => a.unlocked).length;
 
   return (
     <div 
-      className="min-h-screen relative bg-[#020408] flex selection:bg-yellow-400/30 text-slate-200 font-sans cursor-crosshair"
+      className="min-h-screen relative bg-[#020408] selection:bg-yellow-400/30 text-slate-200 font-sans cursor-crosshair"
       onMouseMove={(e) => {
         mouse.current = [
           (e.clientX / window.innerWidth) * 2 - 1,
@@ -818,83 +829,125 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar Navigation */}
-      <aside className="w-64 h-screen fixed left-0 top-0 border-r border-white/5 bg-black/40 backdrop-blur-xl z-50 flex flex-col">
-        <div className="p-10 border-b border-white/5">
-          <div className="font-mono text-sm tracking-widest text-white mb-1">
-            IBRAHIM<span className="text-yellow-400">.DEV</span>
-          </div>
-          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Senior Software Engineer</div>
-        </div>
-        
-        <nav className="flex-1 py-10">
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              onClick={(e) => {
-                e.preventDefault();
-                handleSectionVisit(item.id);
-                document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className={`flex items-center gap-4 px-10 py-5 font-mono text-[11px] tracking-widest transition-all relative ${
-                activeSection === item.id ? 'text-yellow-400 bg-yellow-400/5' : 'text-slate-500 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              {item.icon}
-              {item.label}
-              {activeSection === item.id && (
-                <motion.div layoutId="nav-active" className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-yellow-400 shadow-[0_0_10px_#facc15]" />
-              )}
-            </a>
-          ))}
-        </nav>
+      {/* Top Navigation */}
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/40 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 md:h-20 md:px-10">
+          {/* Brand */}
+          <a
+            href="#about"
+            onClick={(e) => {
+              e.preventDefault();
+              handleSectionVisit('about');
+              document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="flex flex-col leading-tight shrink-0"
+          >
+            <span className="font-mono text-sm tracking-widest text-white">
+              IBRAHIM<span className="text-yellow-400">.DEV</span>
+            </span>
+            <span className="hidden text-[9px] font-mono uppercase tracking-[0.25em] text-slate-500 sm:block">
+              Senior Software Engineer
+            </span>
+          </a>
 
-        {/* Achievements Preview */}
-        <div className="p-8 border-t border-white/5 relative">
-          <div className="flex items-center gap-2 mb-4 text-xs font-mono text-slate-500 uppercase tracking-widest">
-            <Trophy size={14} className="text-yellow-400" />
-            <span>Achievements</span>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {achievements.map(a => (
-              <button 
-                key={a.id} 
-                onClick={() => setSelectedAchievement(a)}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center border transition-all ${
-                  a.unlocked ? 'bg-yellow-400/10 border-yellow-400/30 text-yellow-400' : 'bg-white/5 border-white/5 text-slate-700'
+          {/* Nav */}
+          <nav className="flex items-center gap-0.5 sm:gap-1">
+            {navItems.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSectionVisit(item.id);
+                  document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                aria-label={item.label}
+                className={`relative flex items-center gap-2 rounded-lg px-3 py-2 font-mono text-[11px] tracking-widest transition-all md:px-4 ${
+                  activeSection === item.id ? 'text-yellow-400' : 'text-slate-500 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Zap size={14} />
-              </button>
-            ))}
-          </div>
-
-          <AnimatePresence>
-            {selectedAchievement && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute bottom-full left-4 right-4 mb-4 glass-card p-4 z-[60] border-yellow-400/20"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="text-[10px] font-mono text-yellow-400 uppercase tracking-widest">Achievement</div>
-                  <button onClick={() => setSelectedAchievement(null)} className="text-slate-500 hover:text-white">X</button>
-                </div>
-                <div className="text-sm font-bold text-white mb-1">{selectedAchievement.title}</div>
-                <div className="text-xs text-slate-400 leading-tight">{selectedAchievement.description}</div>
-                {!selectedAchievement.unlocked && (
-                  <div className="mt-2 text-[9px] font-mono text-slate-600 uppercase tracking-widest italic">[ Locked ]</div>
+                {item.icon}
+                <span className="hidden lg:inline">{item.label}</span>
+                {activeSection === item.id && (
+                  <motion.div layoutId="nav-active" className="absolute inset-x-2 -bottom-px h-0.5 bg-yellow-400 shadow-[0_0_10px_#facc15]" />
                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </a>
+            ))}
+          </nav>
+
+          {/* Achievements + Socials */}
+          <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
+            <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hidden rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white sm:block">
+              <Github size={16} />
+            </a>
+            <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hidden rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white sm:block">
+              <Linkedin size={16} />
+            </a>
+            <button
+              onClick={() => setShowAchievements(v => !v)}
+              aria-label="Achievements"
+              className={`flex items-center gap-2 rounded-lg border px-3 py-2 font-mono text-[11px] tracking-widest transition-all ${
+                showAchievements ? 'border-yellow-400/30 bg-yellow-400/10 text-yellow-400' : 'border-white/10 bg-white/5 text-slate-400 hover:text-white'
+              }`}
+            >
+              <Trophy size={14} className="text-yellow-400" />
+              <span>{unlockedCount}/{achievements.length}</span>
+            </button>
+
+            <AnimatePresence>
+              {showAchievements && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="glass-card absolute right-0 top-full z-[60] mt-3 w-72 border-yellow-400/20 p-5"
+                >
+                  <div className="mb-4 flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-slate-500">
+                    <Trophy size={14} className="text-yellow-400" />
+                    <span>Achievements</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {achievements.map(a => (
+                      <button
+                        key={a.id}
+                        onClick={() => setSelectedAchievement(a)}
+                        className={`flex aspect-square items-center justify-center rounded-lg border transition-all ${
+                          a.unlocked ? 'bg-yellow-400/10 border-yellow-400/30 text-yellow-400' : 'bg-white/5 border-white/5 text-slate-700'
+                        }`}
+                      >
+                        <Zap size={16} />
+                      </button>
+                    ))}
+                  </div>
+                  <AnimatePresence>
+                    {selectedAchievement && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        className="mt-4 rounded-xl border border-yellow-400/20 bg-black/30 p-4"
+                      >
+                        <div className="mb-2 flex items-start justify-between">
+                          <div className="text-[10px] font-mono uppercase tracking-widest text-yellow-400">Achievement</div>
+                          <button onClick={() => setSelectedAchievement(null)} className="text-slate-500 hover:text-white">X</button>
+                        </div>
+                        <div className="mb-1 text-sm font-bold text-white">{selectedAchievement.title}</div>
+                        <div className="text-xs leading-tight text-slate-400">{selectedAchievement.description}</div>
+                        {!selectedAchievement.unlocked && (
+                          <div className="mt-2 text-[9px] font-mono uppercase tracking-widest italic text-slate-600">[ Locked ]</div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </aside>
+      </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 ml-64 relative z-10 p-8 md:p-14 xl:p-20 max-w-none">
+      <main className="relative z-10 mx-auto max-w-7xl px-6 pt-24 md:px-12 md:pt-28">
         
         {/* Content Mask */}
         <AnimatePresence>
@@ -1001,13 +1054,20 @@ export default function App() {
               <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Technical Arsenal</h2>
               <div className="h-[1px] flex-1 bg-white/5" />
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.keys(TECH_SVGS).map((name) => (
-                <div key={name} className="glass-card p-8 flex flex-col items-center gap-4 hover:bg-white/5 transition-all group">
-                  <div className="text-slate-500 group-hover:text-yellow-400 transition-colors">
-                    {TECH_SVGS[name as keyof typeof TECH_SVGS]}
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {SKILL_GROUPS.map((group) => (
+                <div key={group.category} className="glass-card p-8 flex flex-col gap-5 hover:bg-white/5 transition-all">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-yellow-400/70">{group.category}</div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-slate-300 transition-colors hover:border-yellow-400/30 hover:text-yellow-400"
+                      >
+                        {skill}
+                      </span>
+                    ))}
                   </div>
-                  <span className="text-[10px] font-mono text-slate-600 group-hover:text-slate-300 uppercase tracking-widest">{name}</span>
                 </div>
               ))}
             </div>
@@ -1019,104 +1079,83 @@ export default function App() {
               <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Mission Log</h2>
               <div className="h-[1px] flex-1 bg-white/5" />
             </div>
-            <div className="space-y-8">
+            <div className="space-y-16">
               {PROJECTS.map((project) => (
-                <div key={project.id} className="glass-card relative overflow-hidden p-6 md:p-8">
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/6 via-transparent to-sky-400/6" />
-                  <div className="relative">
-                    <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between mb-8">
-                      <div className="max-w-3xl">
-                        <h3 className="text-3xl md:text-4xl font-bold text-white mb-3">{project.title}</h3>
-                        <p className="text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400/70 mb-5">{project.shortDesc}</p>
-                        <p className="text-slate-300 leading-relaxed">{project.summary}</p>
-                      </div>
-                      <div className="flex flex-col gap-5 xl:items-end">
-                        <div className="flex gap-4">
-                          {project.techs.map((tech) => (
-                            <div key={tech} className="text-slate-600 hover:text-white transition-colors">
-                              {TECH_SVGS[tech]}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex flex-wrap gap-3 xl:justify-end">
-                          {project.websiteUrl && (
-                            <a
-                              href={project.websiteUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
-                            >
-                              <Globe size={14} />
-                              Website
-                            </a>
-                          )}
-                          {project.videoUrl ? (
-                            <button
-                              onClick={() => setActiveVideo(project.videoUrl!)}
-                              className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
-                            >
-                              <Zap size={14} />
-                              {project.mediaLabel}
-                            </button>
-                          ) : project.mediaUrl && (
-                            <a
-                              href={project.mediaUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
-                            >
-                              <ExternalLink size={14} />
-                              {project.mediaLabel}
-                            </a>
-                          )}
-                        </div>
-                      </div>
+                <div key={project.id} className="group glass-card relative overflow-hidden p-6 md:p-8">
+                  {project.status && (
+                    <div className="absolute top-6 right-6 z-20 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-black/60 px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] text-yellow-400 backdrop-blur-sm">
+                      <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                      {project.status}
                     </div>
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                      {project.images.map((image, imageIndex) => (
-                        <div key={`${project.id}-${imageIndex}`} className="relative aspect-video overflow-hidden rounded-3xl border border-white/5 bg-black/20">
-                          <img
-                            src={image}
-                            alt={`${project.title} screenshot ${imageIndex + 1}`}
-                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-[1.03]"
-                          />
+                  )}
+                  <div className="no-scrollbar mb-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+                    {project.images.map((image, imageIndex) => (
+                      <div
+                        key={`${project.id}-${imageIndex}`}
+                        className="flex h-64 shrink-0 snap-start items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-black/30 md:h-80 xl:h-[26rem]"
+                      >
+                        <img
+                          src={image}
+                          alt={`${project.title} screenshot ${imageIndex + 1}`}
+                          className="h-full w-auto max-w-none object-contain"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-3xl font-bold text-white group-hover:text-yellow-400 transition-colors">{project.title}</h3>
+                      <p className="mt-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400/70">{project.shortDesc}</p>
+                    </div>
+                    <div className="flex gap-4">
+                      {project.techs.map(tech => (
+                        <div key={tech} className="text-slate-600 hover:text-white transition-colors">
+                          {TECH_SVGS[tech]}
                         </div>
                       ))}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Certificates Section */}
-          <section id="certificates" className="mb-40">
-            <div className="flex items-center gap-4 mb-12">
-              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Credentials</h2>
-              <div className="h-[1px] flex-1 bg-white/5" />
-            </div>
-            <div className="grid gap-8 xl:grid-cols-3">
-              {CERTIFICATES.map((certificate) => (
-                <div key={certificate.id} className="glass-card overflow-hidden">
-                  <div className="h-full flex flex-col">
-                    <div className="bg-white p-4 md:p-6">
-                      <img
-                        src={certificate.image}
-                        alt={`${certificate.title} certificate`}
-                        className="w-full rounded-2xl object-contain aspect-[4/5]"
-                      />
-                    </div>
-                    <div className="p-8 md:p-10 flex flex-1 flex-col justify-center">
-                      <div className="text-yellow-400/70 font-mono text-[10px] uppercase tracking-[0.2em] mb-5">
-                        {certificate.issuer}
-                      </div>
-                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-5">{certificate.title}</h3>
-                      <p className="text-slate-300 leading-relaxed mb-6">{certificate.description}</p>
-                      <div className="inline-flex w-fit items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400">
-                        <Trophy size={14} />
-                        {certificate.tag}
-                      </div>
-                    </div>
+                  <p className="text-slate-400 leading-relaxed max-w-2xl mb-8">{project.summary}</p>
+                  <div className="flex flex-wrap gap-3">
+                    {project.websiteUrl && (
+                      <a
+                        href={project.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
+                      >
+                        <Globe size={14} />
+                        Website
+                      </a>
+                    )}
+                    {project.videoUrl ? (
+                      <button
+                        onClick={() => setActiveVideo(project.videoUrl!)}
+                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                      >
+                        <Zap size={14} />
+                        {project.mediaLabel}
+                      </button>
+                    ) : project.mediaUrl && (
+                      <a
+                        href={project.mediaUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                      >
+                        <ExternalLink size={14} />
+                        {project.mediaLabel}
+                      </a>
+                    )}
+                    {!project.websiteUrl && !project.videoUrl && !project.mediaUrl && (
+                      <a
+                        href={`mailto:ibrahim.alibu11work@gmail.com?subject=${encodeURIComponent(`${project.title} — Demo request`)}`}
+                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
+                      >
+                        <Mail size={14} />
+                        Request Demo
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1184,7 +1223,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-[min(92vw,1700px)] aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+              className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10"
               onClick={(e) => e.stopPropagation()}
             >
               <button 
