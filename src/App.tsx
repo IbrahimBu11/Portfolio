@@ -3,20 +3,21 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
-import { 
-  Github, 
-  Linkedin, 
-  Mail, 
-  Zap,
+import {
+  Github,
+  Linkedin,
+  Mail,
   User,
-  FolderCode, 
-  MessageSquare, 
-  Settings, 
-  Briefcase,
-  Trophy,
-  MousePointer2,
+  FolderCode,
+  MessageSquare,
+  Layers,
   Globe,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  X,
+  ArrowUpRight
 } from 'lucide-react';
 import nanocry01 from './assets/portfolio/source/nanocry-01.webp';
 import nanocry02 from './assets/portfolio/source/nanocry-02.webp';
@@ -104,23 +105,6 @@ interface Project {
   mediaLabel?: string;
 }
 
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  unlocked: boolean;
-}
-
-interface ExperienceEntry {
-  company: string;
-  location: string;
-  role: string;
-  period: string;
-  description: string;
-  highlights: string[];
-  stack: string[];
-}
-
 interface ExperienceStat {
   value: string;
   label: string;
@@ -129,51 +113,33 @@ interface ExperienceStat {
 // --- Constants & Data ---
 const EXPERIENCE_STATS: ExperienceStat[] = [
   { value: "4+", label: "Years In Game Dev" },
-  { value: "3+", label: "Multiplayer Titles Shipped" },
-  { value: "100+", label: "Concurrent Players" },
-  { value: "<100ms", label: "Average Match Latency" }
+  { value: "3+", label: "Multiplayer Titles Shipped" }
 ];
 
-const EXPERIENCE: ExperienceEntry[] = [
-  {
-    company: "Devsinc",
-    location: "Hybrid, Lahore",
-    role: "Senior Software Engineer",
-    period: "Feb 2025 - Present",
-    description: "Architecting multiplayer titles with Photon PUN2/Fusion, Azure, and PlayFab.",
-    highlights: [
-      "100+ concurrent players at ~85ms average latency",
-      "40% lower hosting costs through custom multiplayer pipeline",
-      "1,000+ daily matches with sub-3 second queue times"
-    ],
-    stack: ["Photon Fusion", "PlayFab", "Azure", "Optimization"]
-  },
-  {
-    company: "Katana Games",
-    location: "Hybrid, Lahore",
-    role: "Game Developer",
-    period: "Apr 2022 - Feb 2024",
-    description: "Built multiplayer systems, AI bots, localization, and gameplay features for shipped Unity titles.",
-    highlights: [
-      "Seamless online and offline flow with 200ms transition time",
-      "15+ AI behavior states for human-like bot play",
-      "5-language localization and 98% crash-free delivery"
-    ],
-    stack: ["Photon PUN2", "AI Systems", "Localization", "Gameplay"]
-  },
-  {
-    company: "Game Train",
-    location: "On-Site, Lahore",
-    role: "Internee",
-    period: "Jan 2022 - Apr 2022",
-    description: "Completed intensive game development training and ranked among the top participants.",
-    highlights: [
-      "Ranked Top 3 among 50+ participants",
-      "Built 4 technical projects in Unity and C#",
-      "Scored 95% in technical and communication assessments"
-    ],
-    stack: ["Unity", "C#", "Architecture", "Bootcamp"]
-  }
+const TECH_STACK: { key: keyof typeof TECH_SVGS; label: string }[] = [
+  { key: "unity", label: "Unity" },
+  { key: "csharp", label: "C#" },
+  { key: "photon", label: "Photon" },
+  { key: "azure", label: "Azure" },
+  { key: "aws", label: "AWS" },
+  { key: "nodejs", label: "Node.js" },
+  { key: "docker", label: "Docker" },
+  { key: "cpp", label: "C++" }
+];
+
+const SPECIALTIES = [
+  "Server-Authoritative Netcode",
+  "Lag Compensation (KCC)",
+  "Matchmaking & Lobbies",
+  "PlayFab",
+  "Firebase / Firestore",
+  "Mobile Optimization",
+  "In-App Purchases",
+  "Push Notifications",
+  "Ads Integration",
+  "Blockchain / NFT",
+  "AI State Machines",
+  "Localization"
 ];
 
 const SOCIAL_LINKS = {
@@ -181,6 +147,27 @@ const SOCIAL_LINKS = {
   linkedin: "https://www.linkedin.com/in/ibrahim-butt321123/",
   email: "mailto:ibrahim.alibu11work@gmail.com"
 };
+
+// Official store badges (linkable per Google/Apple brand guidelines).
+const STORE_BADGES = {
+  google: {
+    src: "https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png",
+    alt: "Get it on Google Play",
+    className: "h-14"
+  },
+  apple: {
+    src: "https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg",
+    alt: "Download on the App Store",
+    className: "h-10"
+  }
+};
+
+function storeFor(url?: string): keyof typeof STORE_BADGES | null {
+  if (!url) return null;
+  if (url.includes("play.google.com")) return "google";
+  if (url.includes("apps.apple.com")) return "apple";
+  return null;
+}
 
 const PROJECTS: Project[] = [
   {
@@ -190,7 +177,8 @@ const PROJECTS: Project[] = [
     summary: "Lead multiplayer developer architecting a 30+ player, server-authoritative battle royale on Photon Fusion. Lag compensation (hitbox buffering, KCC) cuts perceived latency by 40%, with Unity Multiplay matchmaking, dedicated servers, and a high-frequency sync system handling 150+ objects per frame.",
     techs: ["unity", "photon", "csharp"],
     images: [nanocry01, nanocry02, nanocry03, nanocry04],
-    status: "Under Development"
+    status: "Under Development",
+    websiteUrl: "https://ibrahimbu11.github.io/NanocryWebsite/"
   },
   {
     id: 2,
@@ -250,7 +238,9 @@ const PROJECTS: Project[] = [
     shortDesc: "3D Fighting Game // Unity, Mobile.",
     summary: "Developed responsive melee combat, combo chaining, and AI opponents tuned for smooth mobile performance.",
     techs: ["unity", "csharp"],
-    images: [kungFuKarate01, kungFuKarate02, kungFuKarate03]
+    images: [kungFuKarate01, kungFuKarate02, kungFuKarate03],
+    mediaUrl: "https://play.google.com/store/apps/details?id=com.gss.grand.city.rescue.flyingrobot",
+    mediaLabel: "Store"
   },
   {
     id: 8,
@@ -258,498 +248,298 @@ const PROJECTS: Project[] = [
     shortDesc: "Open-World Simulator // Unity, Mobile.",
     summary: "Worked on gameplay systems for an open-world police K-9 simulator — mission-driven objectives, chase mechanics, and interactive city gameplay.",
     techs: ["unity", "csharp"],
-    images: [usPoliceDog01, usPoliceDog02, usPoliceDog03]
+    images: [usPoliceDog01, usPoliceDog02, usPoliceDog03],
+    mediaUrl: "https://play.google.com/store/apps/details?id=com.gss.us.police.cop.dog.crime.chase.shoppingmall&hl=en",
+    mediaLabel: "Store"
   }
 ];
 
-const SKILL_GROUPS: { category: string; skills: string[] }[] = [
-  {
-    category: "Networking & Multiplayer",
-    skills: ["Photon PUN2 / Fusion / Quantum", "Mirror", "EdgeGap", "NetCode", "Server-Authoritative Architecture", "Lag Compensation (Hitbox Buffering, KCC)", "Matchmaking", "Lobby Management"]
-  },
-  {
-    category: "Backend & Cloud",
-    skills: ["PlayFab", "Azure Functions", "Azure Blob Storage", "Firebase", "Firestore", "Unity Multiplay", "REST APIs"]
-  },
-  {
-    category: "Game Development",
-    skills: ["Unity (C#)", "Performance Profiling", "Memory Optimization", "Mobile Optimization", "UFE2", "RFPS Kits"]
-  },
-  {
-    category: "Tools & Workflow",
-    skills: ["Git", "Rider", "Unity Profiler", "Trello", "Slack", "Jira"]
-  },
-  {
-    category: "Specialized",
-    skills: ["Blockchain Integration (NFT / Wallet)", "Turn-Based Combat Systems", "AI State Machines", "Localization"]
-  }
-];
-
-// --- Achievement System ---
-const INITIAL_ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_kill', title: 'First Contact', description: 'Extinguished your first firefly.', unlocked: false },
-  { id: 'exterminator', title: 'Exterminator', description: 'Cleared 20 fireflies.', unlocked: false },
-  { id: 'explorer', title: 'Scholar', description: 'Visited all sections of the portfolio.', unlocked: false },
-  { id: 'night_owl', title: 'Night Owl', description: 'Visited the site during late hours.', unlocked: false },
-  { id: 'shockwave_pro', title: 'Shockwave Master', description: 'Used the Shockwave ability 3 times.', unlocked: false },
-  { id: 'speed_demon', title: 'Speed Demon', description: 'Cleared 5 fireflies in under 2 seconds.', unlocked: false },
-];
-
-// --- Three.js Fireflies Component ---
-function Fireflies({ mouse, isLocked, level, explosions, shockwaveActive, shockwavePos }: { 
-  mouse: React.MutableRefObject<[number, number]>, 
-  isLocked: boolean,
-  level: number,
-  explosions: { x: number, y: number, id: number }[],
-  shockwaveActive: boolean,
-  shockwavePos: [number, number]
-}) {
+// --- Ambient Particles (calm, cursor-reactive backdrop) ---
+function AmbientParticles({ mouse }: { mouse: React.MutableRefObject<[number, number]> }) {
   const meshRef = useRef<THREE.Points>(null!);
-  const shockwaveRef = useRef<THREE.Group>(null!);
-  const lastShockwaveActive = useRef(false);
-  const processedExplosions = useRef<Set<number>>(new Set());
-  const { camera, viewport } = useThree();
-  
-  // Viewport scaling factors
+  const { viewport } = useThree();
   const vW = viewport.width / 2;
   const vH = viewport.height / 2;
 
-  // Pre-allocate a smaller, calmer pool of particles
-  const MAX_PARTICLES = 180;
-  const particles = useMemo(() => {
-    const positions = new Float32Array(MAX_PARTICLES * 3);
-    const velocities = new Float32Array(MAX_PARTICLES * 3);
-    const types = new Float32Array(MAX_PARTICLES); // 0: normal, 1: aggressive
-    const phases = new Float32Array(MAX_PARTICLES);
-    const speeds = new Float32Array(MAX_PARTICLES);
-    const radii = new Float32Array(MAX_PARTICLES);
-    const anchors = new Float32Array(MAX_PARTICLES * 2);
-    
-    for (let i = 0; i < MAX_PARTICLES; i++) {
-      // Initialize off-screen to avoid static background dots
-      positions[i * 3] = 0;
-      positions[i * 3 + 1] = 1000; 
+  const COUNT = 130;
+  const data = useMemo(() => {
+    const positions = new Float32Array(COUNT * 3);
+    const anchors = new Float32Array(COUNT * 2);
+    const phases = new Float32Array(COUNT);
+    const speeds = new Float32Array(COUNT);
+    const radii = new Float32Array(COUNT);
+    for (let i = 0; i < COUNT; i++) {
+      const ax = (Math.random() - 0.5) * 1.9;
+      const ay = (Math.random() - 0.5) * 1.7;
+      anchors[i * 2] = ax;
+      anchors[i * 2 + 1] = ay;
+      positions[i * 3] = ax;
+      positions[i * 3 + 1] = ay;
       positions[i * 3 + 2] = 0;
-      
-      velocities[i * 3] = (Math.random() - 0.5) * 0.02;
-      velocities[i * 3 + 1] = (Math.random() - 0.5) * 0.02;
-      velocities[i * 3 + 2] = (Math.random() - 0.5) * 0.02;
-      
-      types[i] = Math.random() > 0.88 ? 1 : 0;
       phases[i] = Math.random() * Math.PI * 2;
-      speeds[i] = 0.35 + Math.random() * 0.85;
-      radii[i] = 0.2 + Math.random() * 0.9;
-      anchors[i * 2] = (Math.random() - 0.5) * 1.8;
-      anchors[i * 2 + 1] = (Math.random() - 0.5) * 1.5;
+      speeds[i] = 0.3 + Math.random() * 0.7;
+      radii[i] = 0.15 + Math.random() * 0.8;
     }
-    return { positions, velocities, types, phases, speeds, radii, anchors };
+    return { positions, anchors, phases, speeds, radii };
   }, []);
 
   useFrame((state, delta) => {
-    const { positions, velocities, types, phases, speeds, radii, anchors } = particles;
-    const time = state.clock.getElapsedTime();
-    
-    // Current active count based on level
-    const activeCount = Math.min(MAX_PARTICLES, 28 + Math.floor(level) * 12);
+    if (!meshRef.current) return;
+    const { positions, anchors, phases, speeds, radii } = data;
+    const t = state.clock.getElapsedTime();
+    const mx = mouse.current[0] * vW;
+    const my = mouse.current[1] * vH;
+    const repelR = Math.min(vW, vH) * 0.3;
+    const ease = Math.min(1, delta * 2.5);
 
-    // Global Shockwave logic
-    if (shockwaveRef.current && shockwaveActive) {
-      const sx = shockwavePos[0] * vW;
-      const sy = shockwavePos[1] * vH;
-
-      if (!lastShockwaveActive.current) {
-        shockwaveRef.current.position.set(sx, sy, 0);
-        for (let i = 0; i < MAX_PARTICLES; i++) {
-          const i3 = i * 3;
-          if (positions[i3 + 1] > 500) continue; // Skip inactive
-          const dx = positions[i3] - sx;
-          const dy = positions[i3 + 1] - sy;
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          velocities[i3] += (dx / dist) * 1.5;
-          velocities[i3 + 1] += (dy / dist) * 1.5;
-        }
-      }
-      shockwaveRef.current.scale.setScalar(shockwaveRef.current.scale.x + delta * 40);
-      shockwaveRef.current.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.material.opacity *= 0.8;
-        }
-      });
-    } else if (shockwaveRef.current) {
-      shockwaveRef.current.scale.setScalar(0);
-      shockwaveRef.current.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.material.opacity = child.userData.initialOpacity || 0.8;
-        }
-      });
-    }
-    lastShockwaveActive.current = shockwaveActive;
-
-    // Mini-Shockwaves (Explosions) logic
-    explosions.forEach(exp => {
-      if (!processedExplosions.current.has(exp.id)) {
-        const ex = exp.x * vW;
-        const ey = exp.y * vH;
-        for (let i = 0; i < MAX_PARTICLES; i++) {
-          const i3 = i * 3;
-          if (positions[i3 + 1] > 500) continue; // Skip inactive
-          const dx = positions[i3] - ex;
-          const dy = positions[i3 + 1] - ey;
-          const distSq = dx * dx + dy * dy;
-          if (distSq < 2) {
-            const dist = Math.sqrt(distSq) || 0.1;
-            const force = (1.5 - dist) * 0.2;
-            velocities[i3] += (dx / dist) * force;
-            velocities[i3 + 1] += (dy / dist) * force;
-          }
-        }
-        processedExplosions.current.add(exp.id);
-      }
-    });
-
-    if (explosions.length === 0) processedExplosions.current.clear();
-
-    // Environmental Effect: subtle camera shake at high threat
-    if (level > 7) {
-      camera.position.x = Math.sin(time * 18) * (level - 7) * 0.004;
-      camera.position.y = Math.cos(time * 18) * (level - 7) * 0.004;
-    } else {
-      camera.position.x = 0;
-      camera.position.y = 0;
-    }
-
-    const maxDistance = Math.max(vW, vH) * 1.7;
-    const maxDistanceSq = maxDistance * maxDistance;
-
-    for (let i = 0; i < MAX_PARTICLES; i++) {
+    for (let i = 0; i < COUNT; i++) {
       const i3 = i * 3;
       const i2 = i * 2;
-      
-      // Handle active/inactive state
-      if (i >= activeCount) {
-        positions[i3 + 1] = 1000; // Move far off-screen
-        continue;
-      } else if (positions[i3 + 1] > 500) {
-        // Just became active, spawn around a soft anchor point
-        const anchorX = anchors[i2] * vW * 0.9;
-        const anchorY = anchors[i2 + 1] * vH * 0.85;
-        positions[i3] = anchorX + (Math.random() - 0.5) * vW * 0.12;
-        positions[i3 + 1] = anchorY + (Math.random() - 0.5) * vH * 0.12;
-        velocities[i3] = (Math.random() - 0.5) * 0.02;
-        velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
-      }
+      const anchorX = anchors[i2] * vW * 0.95;
+      const anchorY = anchors[i2 + 1] * vH * 0.9;
 
-      const isAggressive = types[i] === 1 && level > 4;
-      
-      // Respawn logic (if drifted too far)
-      const distSq = positions[i3] * positions[i3] + positions[i3 + 1] * positions[i3 + 1];
-      if (distSq > maxDistanceSq) {
-        const anchorX = anchors[i2] * vW * 0.9;
-        const anchorY = anchors[i2 + 1] * vH * 0.85;
-        positions[i3] = anchorX;
-        positions[i3 + 1] = anchorY;
-        velocities[i3] = 0;
-        velocities[i3 + 1] = 0;
-      }
-
-      const anchorX = anchors[i2] * vW * 0.9;
-      const anchorY = anchors[i2 + 1] * vH * 0.85;
       const flutterX =
-        Math.sin(time * (0.35 + speeds[i] * 0.25) + phases[i]) * (radii[i] * 0.55 + level * 0.025) +
-        Math.sin(time * (0.18 + speeds[i] * 0.1) + phases[i] * 1.9) * vW * 0.03;
+        Math.sin(t * (0.3 + speeds[i] * 0.2) + phases[i]) * (radii[i] * 0.5) +
+        Math.sin(t * 0.15 + phases[i] * 1.7) * vW * 0.02;
       const flutterY =
-        Math.cos(time * (0.4 + speeds[i] * 0.22) + phases[i] * 1.3) * (radii[i] * 0.45 + level * 0.02) +
-        Math.cos(time * (0.2 + speeds[i] * 0.1) + phases[i] * 1.6) * vH * 0.025;
+        Math.cos(t * (0.32 + speeds[i] * 0.18) + phases[i] * 1.2) * (radii[i] * 0.45) +
+        Math.cos(t * 0.17 + phases[i] * 1.5) * vH * 0.02;
 
-      let targetX = anchorX + flutterX;
-      let targetY = anchorY + flutterY;
+      // Subtle parallax lean toward the cursor.
+      let targetX = anchorX + flutterX + (mx - anchorX) * 0.03;
+      let targetY = anchorY + flutterY + (my - anchorY) * 0.03;
 
-      if (isLocked && !shockwaveActive) {
-        const mousePull = isAggressive ? 0.62 : 0.35;
-        targetX = THREE.MathUtils.lerp(targetX, mouse.current[0] * vW, mousePull);
-        targetY = THREE.MathUtils.lerp(targetY, mouse.current[1] * vH, mousePull);
-      } else if (isAggressive && !shockwaveActive) {
-        targetX = THREE.MathUtils.lerp(targetX, mouse.current[0] * vW, 0.18);
-        targetY = THREE.MathUtils.lerp(targetY, mouse.current[1] * vH, 0.18);
+      // Soft repulsion bubble so dots part around the cursor.
+      const dx = positions[i3] - mx;
+      const dy = positions[i3 + 1] - my;
+      const dist = Math.hypot(dx, dy) || 0.0001;
+      if (dist < repelR) {
+        const force = (1 - dist / repelR) * repelR * 0.6;
+        targetX += (dx / dist) * force;
+        targetY += (dy / dist) * force;
       }
 
-      let attractionStrength = isLocked ? 0.001 + level * 0.00012 : 0.00022;
-      if (isAggressive) attractionStrength *= 1.25;
-      
-      if (!shockwaveActive) {
-        velocities[i3] += (targetX - positions[i3]) * attractionStrength;
-        velocities[i3 + 1] += (targetY - positions[i3 + 1]) * attractionStrength;
-      }
-
-      const driftScale = 0.0018 + level * 0.0003;
-      velocities[i3] += (Math.random() - 0.5) * driftScale;
-      velocities[i3 + 1] += (Math.random() - 0.5) * driftScale;
-
-      const speed = Math.hypot(velocities[i3], velocities[i3 + 1]);
-      const maxSpeed = (isLocked ? 0.08 : 0.035) + level * 0.004;
-      if (speed > maxSpeed) {
-        const scale = maxSpeed / speed;
-        velocities[i3] *= scale;
-        velocities[i3 + 1] *= scale;
-      }
-
-      positions[i3] += velocities[i3] * delta * 60;
-      positions[i3 + 1] += velocities[i3 + 1] * delta * 60;
-      positions[i3 + 2] += velocities[i3 + 2] * delta * 60;
-
-      const friction = Math.max(0.88, 0.95 - level * 0.003);
-      const damping = Math.pow(friction, delta * 60);
-      velocities[i3] *= damping;
-      velocities[i3 + 1] *= damping;
-      velocities[i3 + 2] *= damping;
+      positions[i3] += (targetX - positions[i3]) * ease;
+      positions[i3 + 1] += (targetY - positions[i3 + 1]) * ease;
     }
-    if (!meshRef.current) return;
     meshRef.current.geometry.attributes.position.needsUpdate = true;
   });
 
   return (
-    <group>
-      <Points ref={meshRef} positions={particles.positions} stride={3} frustumCulled={false}>
-        <PointMaterial
-          transparent
-          color={level > 5 ? "#fb7185" : "#fde047"}
-          size={level > 4 ? 0.11 : 0.07}
-          sizeAttenuation={true}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          opacity={level > 3 ? 0.72 : 0.5}
-        />
-      </Points>
-      
-      {/* Shockwave Visual - Improved with multiple rings */}
-      <group ref={shockwaveRef}>
-        <mesh onUpdate={(self) => (self.userData.initialOpacity = 0.8)}>
-          <ringGeometry args={[0.1, 0.2, 64]} />
-          <meshBasicMaterial color="#facc15" transparent opacity={0.8} side={THREE.DoubleSide} />
-        </mesh>
-        <mesh scale={0.8} onUpdate={(self) => (self.userData.initialOpacity = 0.5)}>
-          <ringGeometry args={[0.1, 0.15, 64]} />
-          <meshBasicMaterial color="#ffffff" transparent opacity={0.5} side={THREE.DoubleSide} />
-        </mesh>
-      </group>
-
-      {/* Mini Shockwaves for Left Clicks */}
-      {explosions.map(exp => (
-        <group key={exp.id} position={[exp.x * vW, exp.y * vH, 0]}>
-          <MiniShockwaveVisual />
-        </group>
-      ))}
-    </group>
+    <Points ref={meshRef} positions={data.positions} stride={3} frustumCulled={false}>
+      <PointMaterial
+        transparent
+        color="#fbbf24"
+        size={0.06}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+        opacity={0.6}
+      />
+    </Points>
   );
 }
 
-function MiniShockwaveVisual() {
-  const meshRef = useRef<THREE.Mesh>(null!);
-  useFrame((state, delta) => {
-    if (meshRef.current) {
-      meshRef.current.scale.setScalar(meshRef.current.scale.x + delta * 10);
-      const mat = meshRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity -= delta * 3;
+// --- Project Image Gallery (horizontal scroll) ---
+function ProjectGallery({ images, title, projectId }: { images: string[]; title: string; projectId: number }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
+
+  const updateArrows = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 4);
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  useEffect(() => {
+    updateArrows();
+    window.addEventListener('resize', updateArrows);
+    return () => window.removeEventListener('resize', updateArrows);
+  }, [images.length]);
+
+  const scrollByPage = (dir: 1 | -1) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: 'smooth' });
+  };
+
+  // Translate vertical wheel into horizontal scroll while hovering the strip.
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = scrollRef.current;
+    if (!el || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    const atStart = el.scrollLeft <= 0;
+    const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
+    if ((e.deltaY < 0 && atStart) || (e.deltaY > 0 && atEnd)) return; // let page scroll
+    e.preventDefault();
+    el.scrollLeft += e.deltaY;
+  };
+
+  // Click-and-drag to scroll.
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    drag.current = { active: true, startX: e.clientX, startScroll: el.scrollLeft, moved: false };
+    setDragging(true);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollRef.current;
+    if (!el || !drag.current.active) return;
+    const dx = e.clientX - drag.current.startX;
+    if (Math.abs(dx) > 3) {
+      drag.current.moved = true;
+      el.setPointerCapture(e.pointerId);
     }
-  });
+    el.scrollLeft = drag.current.startScroll - dx;
+  };
+  const endDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = scrollRef.current;
+    if (el && el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    drag.current.active = false;
+    setDragging(false);
+  };
+  // Suppress link/button clicks that conclude a drag.
+  const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (drag.current.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      drag.current.moved = false;
+    }
+  };
 
   return (
-    <mesh ref={meshRef}>
-      <ringGeometry args={[0.05, 0.1, 32]} />
-      <meshBasicMaterial color="#facc15" transparent opacity={0.8} side={THREE.DoubleSide} />
-    </mesh>
+    <div className="group/gallery relative mb-8">
+      <div
+        ref={scrollRef}
+        onScroll={updateArrows}
+        onWheel={handleWheel}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClickCapture={onClickCapture}
+        className={`no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 ${dragging ? 'cursor-grabbing snap-none select-none' : 'cursor-grab'}`}
+      >
+        {images.map((image, imageIndex) => (
+          <div
+            key={`${projectId}-${imageIndex}`}
+            className="flex h-56 shrink-0 snap-start items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-black/30 md:h-72 xl:h-80"
+          >
+            <img
+              src={image}
+              alt={`${title} screenshot ${imageIndex + 1}`}
+              className="pointer-events-none h-full w-auto max-w-none object-contain"
+              draggable={false}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Edge fades */}
+      <div className={`pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#070b14] to-transparent transition-opacity ${canLeft ? 'opacity-100' : 'opacity-0'}`} />
+      <div className={`pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#070b14] to-transparent transition-opacity ${canRight ? 'opacity-100' : 'opacity-0'}`} />
+
+      {canLeft && (
+        <button
+          type="button"
+          aria-label="Scroll images left"
+          onClick={() => scrollByPage(-1)}
+          className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/70 p-2 text-white opacity-0 backdrop-blur-sm transition-all hover:border-yellow-400/40 hover:text-yellow-400 group-hover/gallery:opacity-100"
+        >
+          <ChevronLeft size={20} />
+        </button>
+      )}
+      {canRight && (
+        <button
+          type="button"
+          aria-label="Scroll images right"
+          onClick={() => scrollByPage(1)}
+          className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/10 bg-black/70 p-2 text-white opacity-0 backdrop-blur-sm transition-all hover:border-yellow-400/40 hover:text-yellow-400 group-hover/gallery:opacity-100"
+        >
+          <ChevronRight size={20} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// --- Store Badge ---
+function StoreBadge({ url }: { url: string }) {
+  const store = storeFor(url);
+  if (!store) return null;
+  const badge = STORE_BADGES[store];
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={badge.alt}
+      className="inline-flex transition-transform hover:scale-[1.03]"
+    >
+      <img src={badge.src} alt={badge.alt} className={`${badge.className} w-auto`} draggable={false} />
+    </a>
+  );
+}
+
+// --- Section Heading ---
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mb-8 flex items-center gap-4">
+      <h2 className="text-xs font-mono uppercase tracking-[0.4em] text-yellow-400">{children}</h2>
+      <div className="h-px flex-1 bg-white/5" />
+    </div>
   );
 }
 
 // --- Main App ---
 export default function App() {
-  const [achievements, setAchievements] = useState<Achievement[]>(INITIAL_ACHIEVEMENTS);
-  const [killCount, setKillCount] = useState(0);
-  const [isLocked, setIsLocked] = useState(false);
-  const [level, setLevel] = useState(1);
-  const [visitedSections, setVisitedSections] = useState<Set<string>>(new Set(['about']));
-  const [showInstructions, setShowInstructions] = useState(true);
   const [activeSection, setActiveSection] = useState('about');
-  const [notifications, setNotifications] = useState<{ id: string, title: string, type: 'achievement' | 'level' }[]>([]);
-  const [explosions, setExplosions] = useState<{ x: number, y: number, id: number }[]>([]);
-  const [shockwaveReady, setShockwaveReady] = useState(false);
-  const [shockwaveActive, setShockwaveActive] = useState(false);
-  const [shockwavePos, setShockwavePos] = useState<[number, number]>([0, 0]);
-  const [shockwaveCount, setShockwaveCount] = useState(0);
-  const [lastKills, setLastKills] = useState<number[]>([]);
-  const [screenFlash, setScreenFlash] = useState(false);
-  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
-  
   const mouse = useRef<[number, number]>([0, 0]);
-
-  // Difficulty scaling over time
-  useEffect(() => {
-    const timer = setInterval(() => {
-      if (!showInstructions) {
-        setLevel(prev => {
-          const next = prev + 0.1;
-          const oldLevel = Math.floor(prev);
-          const newLevel = Math.floor(next);
-          
-          if (newLevel > oldLevel && newLevel > 1) {
-            addNotification(`Level Up: Threat Level ${newLevel}`, 'level');
-          }
-
-          if (next >= 2 && !isLocked) setIsLocked(true);
-          return next;
-        });
-      }
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [showInstructions, isLocked]);
-
-  // Load achievements
-  useEffect(() => {
-    const saved = localStorage.getItem('ibrahim_achievements');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAchievements(prev => prev.map(a => ({
-          ...a,
-          unlocked: parsed.find((p: any) => p.id === a.id)?.unlocked || false
-        })));
-      } catch (e) {
-        console.error("Failed to load achievements", e);
-      }
-    }
-
-    const hour = new Date().getHours();
-    if (hour >= 22 || hour <= 4) {
-      unlockAchievement('night_owl');
-    }
-  }, []);
-
-  const addNotification = (title: string, type: 'achievement' | 'level') => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setNotifications(prev => [...prev, { id, title, type }]);
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 4000);
-  };
-
-  const unlockAchievement = (id: string) => {
-    setAchievements(prev => {
-      const achievement = prev.find(a => a.id === id);
-      if (achievement && !achievement.unlocked) {
-        addNotification(`Achievement: ${achievement.title}`, 'achievement');
-        setScreenFlash(true);
-        setTimeout(() => setScreenFlash(false), 500);
-        const updated = prev.map(a => a.id === id ? { ...a, unlocked: true } : a);
-        localStorage.setItem('ibrahim_achievements', JSON.stringify(updated));
-        return updated;
-      }
-      return prev;
-    });
-  };
-
-  const handleKill = (e: React.MouseEvent) => {
-    // Don't trigger game mechanics if clicking on interactive elements
-    if ((e.target as HTMLElement).closest('button, a, input, [role="button"]')) return;
-
-    const now = Date.now();
-    const newCount = killCount + 1;
-    setKillCount(newCount);
-    
-    // Speed Demon check
-    const recentKills = [...lastKills, now].filter(t => now - t < 2000);
-    setLastKills(recentKills);
-    if (recentKills.length >= 5) unlockAchievement('speed_demon');
-
-    // Add explosion
-    const expId = Date.now();
-    setExplosions(prev => [...prev, { x: mouse.current[0], y: mouse.current[1], id: expId }]);
-    setTimeout(() => setExplosions(prev => prev.filter(exp => exp.id !== expId)), 500);
-
-    unlockAchievement('first_kill');
-    if (newCount >= 20) unlockAchievement('exterminator');
-    
-    // Shockwave logic
-    if (newCount % 10 === 0) setShockwaveReady(true);
-
-    // Unlock logic: clearing reduces level/difficulty
-    setLevel(prev => Math.max(1, prev - 0.2));
-    if (level < 2) setIsLocked(false);
-  };
-
-  const triggerShockwave = (e: React.MouseEvent) => {
-    if (!shockwaveReady) return;
-    // Don't trigger game mechanics if clicking on interactive elements
-    if ((e.target as HTMLElement).closest('button, a, input, [role="button"]')) return;
-    
-    e.preventDefault();
-    setShockwaveReady(false);
-    setShockwavePos([mouse.current[0], mouse.current[1]]);
-    setShockwaveActive(true);
-    setTimeout(() => setShockwaveActive(false), 1000);
-
-    const newShockwaveCount = shockwaveCount + 1;
-    setShockwaveCount(newShockwaveCount);
-    if (newShockwaveCount >= 3) unlockAchievement('shockwave_pro');
-
-    setIsLocked(false);
-    setLevel(1);
-    addNotification("Shockwave Triggered!", "level");
-    
-    // Visual feedback
-    setScreenFlash(true);
-    setTimeout(() => setScreenFlash(false), 300);
-    
-    setTimeout(() => {
-      if (level > 2) setIsLocked(true);
-    }, 15000);
-  };
-
-  const handleSectionVisit = (id: string) => {
-    setActiveSection(id);
-    setVisitedSections(prev => {
-      const next = new Set(prev).add(id);
-      if (next.size >= 5) unlockAchievement('explorer');
-      return next;
-    });
-  };
-
-  const [showAchievements, setShowAchievements] = useState(false);
 
   const navItems = [
     { id: 'about', label: 'ABOUT', icon: <User size={16} /> },
-    { id: 'experience', label: 'EXPERIENCE', icon: <Briefcase size={16} /> },
-    { id: 'skills', label: 'SKILLS', icon: <Settings size={16} /> },
+    { id: 'stack', label: 'STACK', icon: <Layers size={16} /> },
     { id: 'projects', label: 'PROJECTS', icon: <FolderCode size={16} /> },
-    { id: 'contact', label: 'CONTACT', icon: <MessageSquare size={16} /> },
+    { id: 'contact', label: 'CONTACT', icon: <MessageSquare size={16} /> }
   ];
 
-  const unlockedCount = achievements.filter(a => a.unlocked).length;
+  // Scroll spy to highlight the active nav item.
+  useEffect(() => {
+    const ids = ['about', 'stack', 'projects', 'contact'];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        });
+      },
+      { rootMargin: '-40% 0px -55% 0px' }
+    );
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const goToSection = (id: string) => {
+    setActiveSection(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <div 
-      className="min-h-screen relative bg-[#020408] selection:bg-yellow-400/30 text-slate-200 font-sans cursor-crosshair"
+    <div
+      className="min-h-screen relative bg-[#020408] selection:bg-yellow-400/30 text-slate-200 font-sans"
       onMouseMove={(e) => {
         mouse.current = [
           (e.clientX / window.innerWidth) * 2 - 1,
           -(e.clientY / window.innerHeight) * 2 + 1
         ];
       }}
-      onClick={handleKill}
-      onContextMenu={triggerShockwave}
     >
-      {/* Screen Flash Effect */}
-      <AnimatePresence>
-        {screenFlash && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.3 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-yellow-400 pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
-
       {/* Atmospheric Background */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.12),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(56,189,248,0.12),transparent_24%),radial-gradient(circle_at_80%_80%,rgba(244,114,182,0.08),transparent_26%)]" />
@@ -759,87 +549,22 @@ export default function App() {
         <div className="absolute bottom-[8%] right-[20%] h-72 w-72 rounded-full bg-rose-400/10 blur-3xl" />
       </div>
 
-      {/* Three.js Background */}
+      {/* Ambient Particle Field */}
       <div className="fixed inset-0 z-[1] pointer-events-none">
         <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
           <Suspense fallback={null}>
-            <Fireflies 
-              mouse={mouse} 
-              isLocked={isLocked} 
-              level={level} 
-              explosions={explosions} 
-              shockwaveActive={shockwaveActive}
-              shockwavePos={shockwavePos}
-            />
+            <AmbientParticles mouse={mouse} />
             <ambientLight intensity={0.5} />
           </Suspense>
         </Canvas>
       </div>
 
-      {/* Notifications */}
-      <div className="fixed top-10 right-10 z-[110] flex flex-col gap-4 pointer-events-none">
-        <AnimatePresence>
-          {notifications.map(n => (
-            <motion.div
-              key={n.id}
-              initial={{ x: 100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 100, opacity: 0 }}
-              className="glass-card px-6 py-4 flex items-center gap-4 border-yellow-400/30"
-            >
-              <div className="w-10 h-10 bg-yellow-400/10 rounded-full flex items-center justify-center">
-                {n.type === 'achievement' ? <Trophy className="text-yellow-400 w-5 h-5" /> : <Zap className="text-yellow-400 w-5 h-5" />}
-              </div>
-              <div>
-                <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Notification</div>
-                <div className="text-sm font-bold text-white">{n.title}</div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-
-      {/* Game Overlay / Instructions */}
-      <AnimatePresence>
-        {showInstructions && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-6"
-          >
-            <div className="max-w-md w-full glass-card p-10 text-center">
-              <div className="w-16 h-16 bg-yellow-400/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <MousePointer2 className="text-yellow-400 w-8 h-8" />
-              </div>
-              <h2 className="text-3xl font-bold text-white mb-4">Portfolio Quest</h2>
-              <p className="text-slate-400 mb-8 leading-relaxed">
-                The fireflies have swarmed the content! <br />
-                <span className="text-yellow-400 font-medium">Click on the fireflies</span> to clear them and reveal the sections. 
-                Unlock achievements as you explore.
-              </p>
-              <button 
-                onClick={() => setShowInstructions(false)}
-                className="w-full py-4 bg-yellow-400 text-black font-bold rounded-xl hover:bg-yellow-300 transition-colors uppercase tracking-widest text-sm"
-              >
-                Start Mission
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Top Navigation */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/40 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 md:h-20 md:px-10">
-          {/* Brand */}
           <a
             href="#about"
-            onClick={(e) => {
-              e.preventDefault();
-              handleSectionVisit('about');
-              document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={(e) => { e.preventDefault(); goToSection('about'); }}
             className="flex flex-col leading-tight shrink-0"
           >
             <span className="font-mono text-sm tracking-widest text-white">
@@ -850,17 +575,12 @@ export default function App() {
             </span>
           </a>
 
-          {/* Nav */}
           <nav className="flex items-center gap-0.5 sm:gap-1">
             {navItems.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSectionVisit(item.id);
-                  document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={(e) => { e.preventDefault(); goToSection(item.id); }}
                 aria-label={item.label}
                 className={`relative flex items-center gap-2 rounded-lg px-3 py-2 font-mono text-[11px] tracking-widest transition-all md:px-4 ${
                   activeSection === item.id ? 'text-yellow-400' : 'text-slate-500 hover:text-white hover:bg-white/5'
@@ -875,367 +595,224 @@ export default function App() {
             ))}
           </nav>
 
-          {/* Achievements + Socials */}
-          <div className="relative flex shrink-0 items-center gap-1 sm:gap-2">
-            <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hidden rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white sm:block">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white">
               <Github size={16} />
             </a>
-            <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hidden rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white sm:block">
+            <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white">
               <Linkedin size={16} />
             </a>
-            <button
-              onClick={() => setShowAchievements(v => !v)}
-              aria-label="Achievements"
-              className={`flex items-center gap-2 rounded-lg border px-3 py-2 font-mono text-[11px] tracking-widest transition-all ${
-                showAchievements ? 'border-yellow-400/30 bg-yellow-400/10 text-yellow-400' : 'border-white/10 bg-white/5 text-slate-400 hover:text-white'
-              }`}
-            >
-              <Trophy size={14} className="text-yellow-400" />
-              <span>{unlockedCount}/{achievements.length}</span>
-            </button>
-
-            <AnimatePresence>
-              {showAchievements && (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  className="glass-card absolute right-0 top-full z-[60] mt-3 w-72 border-yellow-400/20 p-5"
-                >
-                  <div className="mb-4 flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-slate-500">
-                    <Trophy size={14} className="text-yellow-400" />
-                    <span>Achievements</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {achievements.map(a => (
-                      <button
-                        key={a.id}
-                        onClick={() => setSelectedAchievement(a)}
-                        className={`flex aspect-square items-center justify-center rounded-lg border transition-all ${
-                          a.unlocked ? 'bg-yellow-400/10 border-yellow-400/30 text-yellow-400' : 'bg-white/5 border-white/5 text-slate-700'
-                        }`}
-                      >
-                        <Zap size={16} />
-                      </button>
-                    ))}
-                  </div>
-                  <AnimatePresence>
-                    {selectedAchievement && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 8 }}
-                        className="mt-4 rounded-xl border border-yellow-400/20 bg-black/30 p-4"
-                      >
-                        <div className="mb-2 flex items-start justify-between">
-                          <div className="text-[10px] font-mono uppercase tracking-widest text-yellow-400">Achievement</div>
-                          <button onClick={() => setSelectedAchievement(null)} className="text-slate-500 hover:text-white">X</button>
-                        </div>
-                        <div className="mb-1 text-sm font-bold text-white">{selectedAchievement.title}</div>
-                        <div className="text-xs leading-tight text-slate-400">{selectedAchievement.description}</div>
-                        {!selectedAchievement.unlocked && (
-                          <div className="mt-2 text-[9px] font-mono uppercase tracking-widest italic text-slate-600">[ Locked ]</div>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <a href={SOCIAL_LINKS.email} aria-label="Email" className="rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white">
+              <Mail size={16} />
+            </a>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="relative z-10 mx-auto max-w-7xl px-6 pt-24 md:px-12 md:pt-28">
-        
-        {/* Content Mask */}
-        <AnimatePresence>
-          {isLocked && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={`fixed inset-0 z-10 pointer-events-none transition-colors duration-1000 ${level > 6 ? 'bg-red-900/20' : 'bg-black/40'} backdrop-blur-[4px]`}
-            />
-          )}
-        </AnimatePresence>
+      {/* Main Content */}
+      <main className="relative z-10 mx-auto max-w-7xl px-5 pt-24 md:px-10 md:pt-32">
 
-        {/* Sections */}
-        <div className={`transition-all duration-700 ${isLocked ? 'opacity-20 blur-sm scale-[0.98]' : 'opacity-100 blur-0 scale-100'}`}>
-          
-          {/* Hero Section */}
-          <section id="about" className="min-h-[80vh] flex flex-col justify-center mb-32">
-            <div className="max-w-3xl">
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+        {/* Hero — name, intro, history */}
+        <section id="about" className="mb-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card relative overflow-hidden p-8 md:p-12"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-transparent to-sky-400/5" />
+            <div className="relative max-w-3xl">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Available for work
+              </div>
+              <h1 className="mb-5 text-5xl font-bold tracking-tighter text-white md:text-7xl">
+                Ibrahim Butt
+              </h1>
+              <p className="mb-8 text-lg font-light leading-relaxed text-slate-300 md:text-xl">
+                Senior Software Engineer building <span className="font-medium text-white">multiplayer, mobile, and WebGL</span> game experiences.
+              </p>
+              <div className="mb-8 flex flex-wrap gap-x-8 gap-y-4">
+                {EXPERIENCE_STATS.map((stat) => (
+                  <div key={stat.label}>
+                    <div className="text-2xl font-bold text-white md:text-3xl">{stat.value}</div>
+                    <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <a
+                  href={SOCIAL_LINKS.email}
+                  className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-5 py-3 text-sm font-bold uppercase tracking-widest text-black transition-all hover:bg-yellow-300"
+                >
+                  <Mail size={16} /> Get in touch
+                </a>
+                <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="rounded-xl border border-white/10 bg-white/5 p-3 text-white transition-all hover:bg-white/10">
+                  <Github size={18} />
+                </a>
+                <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="rounded-xl border border-white/10 bg-white/5 p-3 text-white transition-all hover:bg-white/10">
+                  <Linkedin size={18} />
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Tech Stack */}
+        <section id="stack" className="mb-24">
+          <div className="glass-card p-8 md:p-10">
+            <div className="mb-7 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.25em] text-yellow-400/70">
+              <Layers size={14} /> Tech Stack
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-8">
+              {TECH_STACK.map((tech) => (
+                <div
+                  key={tech.label}
+                  className="flex flex-col items-center gap-3 rounded-2xl border border-white/5 bg-black/20 px-3 py-6 text-slate-300 transition-all hover:border-yellow-400/30 hover:bg-white/5 hover:text-yellow-400"
+                >
+                  {TECH_SVGS[tech.key]}
+                  <span className="text-[11px] font-mono uppercase tracking-[0.15em]">{tech.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {SPECIALTIES.map((skill) => (
+                <span
+                  key={skill}
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-slate-300 transition-colors hover:border-yellow-400/30 hover:text-yellow-400"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Projects — Bento */}
+        <section id="projects" className="mb-24">
+          <SectionHeading>Mission Log</SectionHeading>
+          <div className="space-y-4">
+            {PROJECTS.map((project) => (
+              <div
+                key={project.id}
+                className="group glass-card relative flex flex-col overflow-hidden p-6 md:p-7"
               >
-                <h1 className="text-6xl md:text-8xl font-bold tracking-tighter text-white mb-8">
-                  Ibrahim Butt
-                </h1>
-                <p className="text-xl md:text-2xl text-slate-400 font-light leading-relaxed mb-12">
-                  Senior Software Engineer building <span className="text-white font-medium">multiplayer, mobile, and WebGL</span> game experiences.
-                </p>
-                <div className="flex gap-6">
-                  <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
-                    <Github size={20} />
-                  </a>
-                  <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
-                    <Linkedin size={20} />
-                  </a>
-                  <a href={SOCIAL_LINKS.email} aria-label="Email" className="p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white">
-                    <Mail size={20} />
-                  </a>
-                </div>
-              </motion.div>
-            </div>
-          </section>
-
-          {/* Experience Section */}
-          <section id="experience" className="mb-40">
-            <div className="flex items-center gap-4 mb-12">
-              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Professional Experience</h2>
-              <div className="h-[1px] flex-1 bg-white/5" />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mb-10 xl:grid-cols-4">
-              {EXPERIENCE_STATS.map((stat) => (
-                <div key={stat.label} className="glass-card p-6">
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-2">{stat.value}</div>
-                  <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-slate-500">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-8">
-              {EXPERIENCE.map((exp, idx) => (
-                <div key={idx} className="glass-card relative overflow-hidden p-8 md:p-10">
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/8 via-transparent to-sky-400/6" />
-                  <div className="absolute left-0 top-10 bottom-10 w-px bg-gradient-to-b from-transparent via-yellow-400/30 to-transparent" />
-                  <div className="relative flex flex-col gap-8 xl:flex-row xl:items-start xl:justify-between">
-                    <div className="max-w-2xl">
-                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-5">
-                        <h3 className="text-2xl md:text-3xl font-semibold text-white">{exp.role}</h3>
-                        <span className="font-mono text-[10px] text-slate-500 uppercase tracking-[0.25em]">{exp.period}</span>
-                      </div>
-                      <div className="text-yellow-400/70 font-mono text-[10px] uppercase tracking-[0.2em] mb-5">
-                        {exp.company} // {exp.location}
-                      </div>
-                      <p className="text-slate-300 leading-relaxed max-w-2xl mb-6">{exp.description}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {exp.stack.map((item) => (
-                          <span
-                            key={item}
-                            className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.2em] text-slate-300"
-                          >
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="grid gap-3 xl:w-[22rem]">
-                      {exp.highlights.map((highlight) => (
-                        <div
-                          key={highlight}
-                          className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm leading-relaxed text-slate-300"
-                        >
-                          {highlight}
-                        </div>
-                      ))}
-                    </div>
+                {project.status && (
+                  <div className="absolute top-6 right-6 z-20 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-black/60 px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] text-yellow-400 backdrop-blur-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                    {project.status}
                   </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Skills Section */}
-          <section id="skills" className="mb-40">
-            <div className="flex items-center gap-4 mb-12">
-              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Technical Arsenal</h2>
-              <div className="h-[1px] flex-1 bg-white/5" />
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {SKILL_GROUPS.map((group) => (
-                <div key={group.category} className="glass-card p-8 flex flex-col gap-5 hover:bg-white/5 transition-all">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-yellow-400/70">{group.category}</div>
-                  <div className="flex flex-wrap gap-2">
-                    {group.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-slate-300 transition-colors hover:border-yellow-400/30 hover:text-yellow-400"
-                      >
-                        {skill}
-                      </span>
+                )}
+                <ProjectGallery images={project.images} title={project.title} projectId={project.id} />
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-2xl font-bold text-white transition-colors group-hover:text-yellow-400">{project.title}</h3>
+                    <p className="mt-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400/70">{project.shortDesc}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    {project.techs.map((tech) => (
+                      <div key={tech} className="text-slate-600 transition-colors hover:text-white">
+                        {TECH_SVGS[tech]}
+                      </div>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Projects Section */}
-          <section id="projects" className="mb-40">
-            <div className="flex items-center gap-4 mb-12">
-              <h2 className="text-xs font-mono tracking-[0.4em] uppercase text-yellow-400">Mission Log</h2>
-              <div className="h-[1px] flex-1 bg-white/5" />
-            </div>
-            <div className="space-y-16">
-              {PROJECTS.map((project) => (
-                <div key={project.id} className="group glass-card relative overflow-hidden p-6 md:p-8">
-                  {project.status && (
-                    <div className="absolute top-6 right-6 z-20 inline-flex items-center gap-2 rounded-full border border-yellow-400/30 bg-black/60 px-4 py-2 text-[10px] font-mono uppercase tracking-[0.2em] text-yellow-400 backdrop-blur-sm">
-                      <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
-                      {project.status}
-                    </div>
+                <p className="mb-6 flex-1 leading-relaxed text-slate-400">{project.summary}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  {project.websiteUrl && (
+                    <a
+                      href={project.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
+                    >
+                      <Globe size={14} /> Website
+                    </a>
                   )}
-                  <div className="no-scrollbar mb-8 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
-                    {project.images.map((image, imageIndex) => (
-                      <div
-                        key={`${project.id}-${imageIndex}`}
-                        className="flex h-64 shrink-0 snap-start items-center justify-center overflow-hidden rounded-2xl border border-white/5 bg-black/30 md:h-80 xl:h-[26rem]"
-                      >
-                        <img
-                          src={image}
-                          alt={`${project.title} screenshot ${imageIndex + 1}`}
-                          className="h-full w-auto max-w-none object-contain"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-3xl font-bold text-white group-hover:text-yellow-400 transition-colors">{project.title}</h3>
-                      <p className="mt-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400/70">{project.shortDesc}</p>
-                    </div>
-                    <div className="flex gap-4">
-                      {project.techs.map(tech => (
-                        <div key={tech} className="text-slate-600 hover:text-white transition-colors">
-                          {TECH_SVGS[tech]}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-slate-400 leading-relaxed max-w-2xl mb-8">{project.summary}</p>
-                  <div className="flex flex-wrap gap-3">
-                    {project.websiteUrl && (
-                      <a
-                        href={project.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
-                      >
-                        <Globe size={14} />
-                        Website
-                      </a>
-                    )}
-                    {project.videoUrl ? (
-                      <button
-                        onClick={() => setActiveVideo(project.videoUrl!)}
-                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
-                      >
-                        <Zap size={14} />
-                        {project.mediaLabel}
-                      </button>
-                    ) : project.mediaUrl && (
-                      <a
-                        href={project.mediaUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
-                      >
-                        <ExternalLink size={14} />
-                        {project.mediaLabel}
-                      </a>
-                    )}
-                    {!project.websiteUrl && !project.videoUrl && !project.mediaUrl && (
-                      <a
-                        href={`mailto:ibrahim.alibu11work@gmail.com?subject=${encodeURIComponent(`${project.title} — Demo request`)}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
-                      >
-                        <Mail size={14} />
-                        Request Demo
-                      </a>
-                    )}
-                  </div>
+                  {project.videoUrl ? (
+                    <button
+                      onClick={() => setActiveVideo(project.videoUrl!)}
+                      className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                    >
+                      <Play size={14} /> {project.mediaLabel}
+                    </button>
+                  ) : storeFor(project.mediaUrl) ? (
+                    <StoreBadge url={project.mediaUrl!} />
+                  ) : project.mediaUrl && (
+                    <a
+                      href={project.mediaUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
+                    >
+                      <ExternalLink size={14} /> {project.mediaLabel}
+                    </a>
+                  )}
+                  {!project.websiteUrl && !project.videoUrl && !project.mediaUrl && (
+                    <a
+                      href={`mailto:ibrahim.alibu11work@gmail.com?subject=${encodeURIComponent(`${project.title} — Demo request`)}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
+                    >
+                      <Mail size={14} /> Request Demo
+                    </a>
+                  )}
                 </div>
-              ))}
-            </div>
-          </section>
+              </div>
+            ))}
+          </div>
+        </section>
 
-          {/* Contact Section */}
-          <section id="contact" className="mb-40">
-            <div className="glass-card p-12 md:p-20 text-center">
-              <h2 className="text-4xl md:text-6xl font-bold text-white mb-8">Ready for Deployment?</h2>
-              <p className="text-slate-400 mb-12 max-w-xl mx-auto leading-relaxed">
+        {/* Contact */}
+        <section id="contact" className="mb-24">
+          <div className="glass-card relative overflow-hidden p-12 text-center md:p-20">
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 via-transparent to-sky-400/5" />
+            <div className="relative">
+              <h2 className="mb-6 text-4xl font-bold text-white md:text-6xl">Ready for Deployment?</h2>
+              <p className="mx-auto mb-10 max-w-xl leading-relaxed text-slate-400">
                 Available for multiplayer, gameplay, and mobile game projects.
               </p>
-              <a 
+              <a
                 href="mailto:ibrahim.alibu11work@gmail.com"
-                className="inline-block px-10 py-5 bg-white text-black font-bold rounded-2xl hover:bg-yellow-400 transition-all uppercase tracking-widest text-sm"
+                className="inline-flex items-center gap-2 rounded-2xl bg-white px-10 py-5 text-sm font-bold uppercase tracking-widest text-black transition-all hover:bg-yellow-400"
               >
-                Send Message
+                Send Message <ArrowUpRight size={16} />
               </a>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Footer */}
-          <footer className="py-20 border-t border-white/5 text-center text-[10px] font-mono text-slate-600 uppercase tracking-[0.5em]">
-            Ibrahim Butt // Core Systems // 2026
-          </footer>
-        </div>
+        <footer className="border-t border-white/5 py-16 text-center text-[10px] font-mono uppercase tracking-[0.5em] text-slate-600">
+          Ibrahim Butt // Core Systems // 2026
+        </footer>
       </main>
 
-      {/* Game Status UI */}
-      <div className="fixed bottom-10 right-10 z-50 flex flex-col items-end gap-4 pointer-events-none">
-        {shockwaveReady && (
-          <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="glass-card px-6 py-3 border-emerald-400/30 text-emerald-400 text-[10px] font-mono uppercase tracking-widest flex items-center gap-3"
-          >
-            <Zap size={14} className="animate-pulse" />
-            Shockwave Ready (Right Click)
-          </motion.div>
-        )}
-        <div className="glass-card px-6 py-3 flex items-center gap-4">
-          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Threat Level</div>
-          <div className={`text-xs font-mono uppercase tracking-widest ${level > 3 ? 'text-red-400' : 'text-yellow-400'}`}>
-            Level {Math.floor(level)}
-          </div>
-        </div>
-        <div className="glass-card px-6 py-3 flex items-center gap-4">
-          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Cleared</div>
-          <div className="text-xs font-mono text-yellow-400 uppercase tracking-widest">
-            {killCount} Fireflies
-          </div>
-        </div>
-      </div>
+      {/* Video Modal */}
       <AnimatePresence>
         {activeVideo && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4 md:p-20"
+            className="fixed inset-0 z-[300] flex items-center justify-center bg-black/95 p-4 backdrop-blur-xl md:p-20"
             onClick={() => setActiveVideo(null)}
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-5xl aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+              className="relative aspect-video w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <button 
+              <button
                 onClick={() => setActiveVideo(null)}
-                className="absolute top-6 right-6 z-10 p-2 bg-black/50 hover:bg-black text-white rounded-full transition-colors"
+                className="absolute top-6 right-6 z-10 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black"
+                aria-label="Close video"
               >
-                <Zap size={20} className="rotate-45" />
+                <X size={20} />
               </button>
-              <iframe 
-                src={activeVideo} 
-                className="w-full h-full" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              <iframe
+                src={activeVideo}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </motion.div>
