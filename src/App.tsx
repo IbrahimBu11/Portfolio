@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
@@ -18,7 +18,11 @@ import {
   ChevronRight,
   Play,
   X,
-  ArrowUpRight
+  ArrowUpRight,
+  Trophy,
+  Target,
+  Check,
+  Pencil
 } from 'lucide-react';
 import nanocry01 from './assets/portfolio/source/nanocry-01.webp';
 import nanocry02 from './assets/portfolio/source/nanocry-02.webp';
@@ -178,7 +182,6 @@ const PROJECTS: Project[] = [
     summary: "Lead multiplayer developer architecting a 30+ player, server-authoritative battle royale on Photon Fusion. Lag compensation (hitbox buffering, KCC) cuts perceived latency by 40%, with Unity Multiplay matchmaking, dedicated servers, and a high-frequency sync system handling 150+ objects per frame.",
     techs: ["unity", "photon", "csharp"],
     images: [nanocry01, nanocry02, nanocry03, nanocry04],
-    status: "Under Development",
     websiteUrl: "https://ibrahimbu11.github.io/NanocryWebsite/"
   },
   {
@@ -255,20 +258,122 @@ const PROJECTS: Project[] = [
   }
 ];
 
+// --- Cursor trail (neon line that fades; particles avoid it) ---
+type TrailPoint = { x: number; y: number; t: number };
+type Pointer = { x: number; y: number; inside: boolean };
+const TRAIL_MAX_AGE = 900; // ms
+
+// Shoelace area of a screen-space polygon.
+function polygonArea(poly: { x: number; y: number }[]) {
+  let area = 0;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    area += (poly[j].x + poly[i].x) * (poly[j].y - poly[i].y);
+  }
+  return Math.abs(area) / 2;
+}
+
+// Ray-casting point-in-polygon test.
+function pointInPolygon(x: number, y: number, poly: { x: number; y: number }[]) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i].x, yi = poly[i].y;
+    const xj = poly[j].x, yj = poly[j].y;
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+const ALIVE_COLOR: [number, number, number] = [0.98, 0.72, 0.14]; // amber
+const DEAD_COLOR: [number, number, number] = [1.0, 0.16, 0.18]; // red
+
+// --- Missions / Achievements ---
+type Metric = 'kills' | 'shapes' | 'best' | 'sections';
+interface Mission {
+  id: string;
+  title: string;
+  desc: string;
+  goal: number;
+  metric: Metric;
+}
+
+const MISSIONS: Mission[] = [
+  { id: 'first_catch', title: 'First Catch', desc: 'Trap your first firefly in a net.', goal: 1, metric: 'kills' },
+  { id: 'pest_control', title: 'Pest Control', desc: 'Trap 25 fireflies in total.', goal: 25, metric: 'kills' },
+  { id: 'exterminator', title: 'Exterminator', desc: 'Trap 100 fireflies in total.', goal: 100, metric: 'kills' },
+  { id: 'big_net', title: 'Big Net', desc: 'Trap 6 fireflies in a single shape.', goal: 6, metric: 'best' },
+  { id: 'net_artist', title: 'Net Artist', desc: 'Draw 15 closed nets.', goal: 15, metric: 'shapes' },
+  { id: 'explorer', title: 'Explorer', desc: 'Visit every section of the site.', goal: 4, metric: 'sections' }
+];
+
+const SAVE_KEY = 'ib_portfolio_game_v1';
+
+interface Progress {
+  kills: number;
+  shapes: number;
+  best: number;
+  unlocked: string[];
+  visited: string[];
+}
+
+function loadProgress(): Progress | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+// Soft round glow sprite so the "flies" read as glowing orbs, not squares.
+function makeGlowTexture() {
+  const size = 64;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d')!;
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.2, 'rgba(255,255,255,0.9)');
+  g.addColorStop(0.45, 'rgba(255,255,255,0.35)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  const tex = new THREE.CanvasTexture(c);
+  tex.needsUpdate = true;
+  return tex;
+}
+
+const DEATH_DURATION = 1.1; // seconds for the death burst to fade
+
 // --- Ambient Particles (calm, cursor-reactive backdrop) ---
-function AmbientParticles({ mouse }: { mouse: React.MutableRefObject<[number, number]> }) {
+function AmbientParticles({
+  mouse,
+  trail,
+  killShape,
+  onKill
+}: {
+  mouse: React.MutableRefObject<[number, number]>;
+  trail: React.MutableRefObject<TrailPoint[]>;
+  killShape: React.MutableRefObject<{ x: number; y: number }[] | null>;
+  onKill: (count: number) => void;
+}) {
   const meshRef = useRef<THREE.Points>(null!);
   const { viewport } = useThree();
   const vW = viewport.width / 2;
   const vH = viewport.height / 2;
 
+  const glow = useMemo(makeGlowTexture, []);
+
   const COUNT = 130;
   const data = useMemo(() => {
     const positions = new Float32Array(COUNT * 3);
+    const colors = new Float32Array(COUNT * 3);
     const anchors = new Float32Array(COUNT * 2);
     const phases = new Float32Array(COUNT);
     const speeds = new Float32Array(COUNT);
     const radii = new Float32Array(COUNT);
+    const states = new Float32Array(COUNT); // 0 alive, 1 dying
+    const vel = new Float32Array(COUNT * 2); // vx, vy while dying
+    const death = new Float32Array(COUNT); // 0..1 death progress
     for (let i = 0; i < COUNT; i++) {
       const ax = (Math.random() - 0.5) * 1.9;
       const ay = (Math.random() - 0.5) * 1.7;
@@ -277,25 +382,103 @@ function AmbientParticles({ mouse }: { mouse: React.MutableRefObject<[number, nu
       positions[i * 3] = ax;
       positions[i * 3 + 1] = ay;
       positions[i * 3 + 2] = 0;
+      colors[i * 3] = ALIVE_COLOR[0];
+      colors[i * 3 + 1] = ALIVE_COLOR[1];
+      colors[i * 3 + 2] = ALIVE_COLOR[2];
       phases[i] = Math.random() * Math.PI * 2;
       speeds[i] = 0.3 + Math.random() * 0.7;
       radii[i] = 0.15 + Math.random() * 0.8;
     }
-    return { positions, anchors, phases, speeds, radii };
+    return { positions, colors, anchors, phases, speeds, radii, states, vel, death };
   }, []);
+
+  // Convert a world position to viewport screen pixels (matches trail coords).
+  const worldToScreen = (wx: number, wy: number) => ({
+    x: (wx / vW + 1) * 0.5 * window.innerWidth,
+    y: (1 - wy / vH) * 0.5 * window.innerHeight
+  });
+
+  const respawn = (i: number) => {
+    const { positions, colors, anchors, states, vel, death } = data;
+    const ax = (Math.random() - 0.5) * 1.9;
+    const ay = (Math.random() - 0.5) * 1.7;
+    anchors[i * 2] = ax;
+    anchors[i * 2 + 1] = ay;
+    positions[i * 3] = ax * vW * 0.95;
+    positions[i * 3 + 1] = ay * vH * 0.9;
+    colors[i * 3] = ALIVE_COLOR[0];
+    colors[i * 3 + 1] = ALIVE_COLOR[1];
+    colors[i * 3 + 2] = ALIVE_COLOR[2];
+    states[i] = 0;
+    vel[i * 2] = 0;
+    vel[i * 2 + 1] = 0;
+    death[i] = 0;
+  };
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
-    const { positions, anchors, phases, speeds, radii } = data;
+    const { positions, colors, anchors, phases, speeds, radii, states, vel, death } = data;
     const t = state.clock.getElapsedTime();
     const mx = mouse.current[0] * vW;
     const my = mouse.current[1] * vH;
     const repelR = Math.min(vW, vH) * 0.3;
+    const trailR = Math.min(vW, vH) * 0.16;
     const ease = Math.min(1, delta * 2.5);
+    const gravity = vH * 2.6;
+
+    // Project the recent (still-alive) trail points into world space once per frame.
+    const now = performance.now();
+    const tp = trail.current;
+    const active: number[] = []; // flat [wx, wy, life, ...]
+    for (let k = 0; k < tp.length; k++) {
+      const life = 1 - (now - tp[k].t) / TRAIL_MAX_AGE;
+      if (life <= 0) continue;
+      const nx = (tp[k].x / window.innerWidth) * 2 - 1;
+      const ny = -(tp[k].y / window.innerHeight) * 2 + 1;
+      active.push(nx * vW, ny * vH, life);
+    }
+
+    // Consume a pending kill shape: any alive particle inside it bursts and dies.
+    const poly = killShape.current;
+    if (poly) {
+      let killed = 0;
+      for (let i = 0; i < COUNT; i++) {
+        if (states[i] !== 0) continue;
+        const s = worldToScreen(positions[i * 3], positions[i * 3 + 1]);
+        if (pointInPolygon(s.x, s.y, poly)) {
+          states[i] = 1;
+          death[i] = 0;
+          colors[i * 3] = DEAD_COLOR[0];
+          colors[i * 3 + 1] = DEAD_COLOR[1];
+          colors[i * 3 + 2] = DEAD_COLOR[2];
+          // Burst outward + upward pop, then gravity arcs it down.
+          vel[i * 2] = (Math.random() - 0.5) * vW * 0.9;
+          vel[i * 2 + 1] = (0.2 + Math.random() * 0.5) * vH;
+          killed++;
+        }
+      }
+      killShape.current = null;
+      if (killed > 0) onKill(killed);
+    }
 
     for (let i = 0; i < COUNT; i++) {
       const i3 = i * 3;
       const i2 = i * 2;
+
+      // Dying: burst, fall under gravity, and fade out, then respawn.
+      if (states[i] === 1) {
+        death[i] += delta / DEATH_DURATION;
+        vel[i2 + 1] -= gravity * delta;
+        positions[i3] += vel[i2] * delta;
+        positions[i3 + 1] += vel[i2 + 1] * delta;
+        const fade = Math.max(0, 1 - death[i]);
+        colors[i3] = DEAD_COLOR[0] * fade;
+        colors[i3 + 1] = DEAD_COLOR[1] * fade;
+        colors[i3 + 2] = DEAD_COLOR[2] * fade;
+        if (death[i] >= 1 || positions[i3 + 1] < -vH * 1.6) respawn(i);
+        continue;
+      }
+
       const anchorX = anchors[i2] * vW * 0.95;
       const anchorY = anchors[i2 + 1] * vH * 0.9;
 
@@ -320,25 +503,131 @@ function AmbientParticles({ mouse }: { mouse: React.MutableRefObject<[number, nu
         targetY += (dy / dist) * force;
       }
 
+      // Avoid the recent cursor trail (each segment pushes nearby dots away).
+      for (let k = 0; k < active.length; k += 3) {
+        const tdx = positions[i3] - active[k];
+        const tdy = positions[i3 + 1] - active[k + 1];
+        const td = Math.hypot(tdx, tdy) || 0.0001;
+        if (td < trailR) {
+          const tforce = (1 - td / trailR) * trailR * 0.5 * active[k + 2];
+          targetX += (tdx / td) * tforce;
+          targetY += (tdy / td) * tforce;
+        }
+      }
+
       positions[i3] += (targetX - positions[i3]) * ease;
       positions[i3 + 1] += (targetY - positions[i3 + 1]) * ease;
+
+      // Gentle twinkle on the alive colour.
+      const tw = 0.78 + 0.22 * Math.sin(t * 2.4 + phases[i] * 3);
+      colors[i3] = ALIVE_COLOR[0] * tw;
+      colors[i3 + 1] = ALIVE_COLOR[1] * tw;
+      colors[i3 + 2] = ALIVE_COLOR[2] * tw;
     }
     meshRef.current.geometry.attributes.position.needsUpdate = true;
+    const colorAttr = meshRef.current.geometry.attributes.color;
+    if (colorAttr) colorAttr.needsUpdate = true;
   });
 
   return (
-    <Points ref={meshRef} positions={data.positions} stride={3} frustumCulled={false}>
+    <Points ref={meshRef} positions={data.positions} colors={data.colors} stride={3} frustumCulled={false}>
       <PointMaterial
         transparent
-        color="#fbbf24"
-        size={0.06}
+        vertexColors
+        map={glow}
+        size={0.13}
         sizeAttenuation
         depthWrite={false}
+        toneMapped={false}
         blending={THREE.AdditiveBlending}
-        opacity={0.6}
+        opacity={0.95}
       />
     </Points>
   );
+}
+
+// --- Neon Cursor Trail (2D canvas overlay that fades out) ---
+function NeonTrail({
+  trail,
+  pointer
+}: {
+  trail: React.MutableRefObject<TrailPoint[]>;
+  pointer: React.MutableRefObject<Pointer>;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const strokeSeg = (
+      a: { x: number; y: number },
+      b: { x: number; y: number },
+      life: number,
+      glow: boolean
+    ) => {
+      if (glow) {
+        ctx.strokeStyle = `rgba(56, 189, 248, ${0.5 * life})`;
+        ctx.shadowColor = 'rgba(56, 189, 248, 0.9)';
+        ctx.shadowBlur = 18 * life;
+        ctx.lineWidth = 3.5 * life + 0.5;
+      } else {
+        ctx.strokeStyle = `rgba(224, 242, 254, ${0.8 * life})`;
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 1.5 * life + 0.4;
+      }
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    };
+
+    let raf = 0;
+    const draw = () => {
+      const now = performance.now();
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      const pts = trail.current;
+      while (pts.length && now - pts[0].t > TRAIL_MAX_AGE) pts.shift();
+
+      if (pts.length > 0) {
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // Connect recorded points, then a fresh segment to the live cursor so
+        // the stroke sits exactly under the pointer.
+        const head = pts[pts.length - 1];
+        const tip = pointer.current;
+        for (const glow of [true, false]) {
+          for (let i = 1; i < pts.length; i++) {
+            const life = 1 - (now - pts[i].t) / TRAIL_MAX_AGE;
+            if (life > 0) strokeSeg(pts[i - 1], pts[i], life, glow);
+          }
+          if (tip.inside) strokeSeg(head, tip, 1, glow);
+        }
+      }
+
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, [trail, pointer]);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 z-[2] pointer-events-none" />;
 }
 
 // --- Project Image Gallery (horizontal scroll) ---
@@ -501,6 +790,54 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('about');
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
   const mouse = useRef<[number, number]>([0, 0]);
+  const trail = useRef<TrailPoint[]>([]);
+  const pointer = useRef<Pointer>({ x: 0, y: 0, inside: false });
+  const killShape = useRef<{ x: number; y: number }[] | null>(null);
+  const drawing = useRef(false);
+
+  // --- Game progress (persisted to localStorage) ---
+  const saved = useMemo(() => loadProgress(), []);
+  const [kills, setKills] = useState(saved?.kills ?? 0);
+  const [shapes, setShapes] = useState(saved?.shapes ?? 0);
+  const [best, setBest] = useState(saved?.best ?? 0);
+  const [unlocked, setUnlocked] = useState<string[]>(saved?.unlocked ?? []);
+  const [visited, setVisited] = useState<string[]>(saved?.visited ?? ['about']);
+  const [showMissions, setShowMissions] = useState(false);
+  const [toasts, setToasts] = useState<{ id: number; title: string }[]>([]);
+
+  const metricValue = (m: Mission) =>
+    m.metric === 'kills' ? kills : m.metric === 'shapes' ? shapes : m.metric === 'best' ? best : visited.length;
+
+  const pushToast = useCallback((title: string) => {
+    const id = Date.now() + Math.random();
+    setToasts((prev) => [...prev, { id, title }]);
+    setTimeout(() => setToasts((prev) => prev.filter((x) => x.id !== id)), 4200);
+  }, []);
+
+  const handleKill = useCallback((count: number) => {
+    if (count <= 0) return;
+    setKills((k) => k + count);
+    setBest((b) => Math.max(b, count));
+    trackEvent('flies_trapped', { count });
+  }, []);
+
+  // Persist progress.
+  useEffect(() => {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ kills, shapes, best, unlocked, visited }));
+  }, [kills, shapes, best, unlocked, visited]);
+
+  // Unlock missions whose goal is met.
+  useEffect(() => {
+    const newly = MISSIONS.filter((m) => !unlocked.includes(m.id) && metricValue(m) >= m.goal);
+    if (newly.length) {
+      setUnlocked((prev) => [...prev, ...newly.map((m) => m.id)]);
+      newly.forEach((m) => {
+        pushToast(m.title);
+        trackEvent('mission_unlocked', { mission: m.id });
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kills, shapes, best, visited]);
 
   const navItems = [
     { id: 'about', label: 'ABOUT', icon: <User size={16} /> },
@@ -524,6 +861,7 @@ export default function App() {
           if (!entry.isIntersecting) return;
           const id = entry.target.id;
           setActiveSection(id);
+          setVisited((prev) => (prev.includes(id) ? prev : [...prev, id]));
           if (!seen.has(id)) {
             seen.add(id);
             trackEvent('section_view', { section: id });
@@ -548,34 +886,174 @@ export default function App() {
   return (
     <div
       className="min-h-screen relative bg-[#020408] selection:bg-yellow-400/30 text-slate-200 font-sans"
+      onMouseDown={(e) => {
+        if (e.button !== 0) return; // left button only
+        // Don't start a net when interacting with UI (links, buttons, galleries).
+        if ((e.target as HTMLElement).closest('a, button, input, textarea, [role="button"]')) return;
+        drawing.current = true;
+        trail.current = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+        pointer.current = { x: e.clientX, y: e.clientY, inside: true };
+      }}
       onMouseMove={(e) => {
         mouse.current = [
           (e.clientX / window.innerWidth) * 2 - 1,
           -(e.clientY / window.innerHeight) * 2 + 1
         ];
+
+        // Trail is only drawn while dragging with the left button held.
+        if (!drawing.current) {
+          pointer.current.inside = false;
+          return;
+        }
+        pointer.current = { x: e.clientX, y: e.clientY, inside: true };
+
+        const pts = trail.current;
+        const last = pts[pts.length - 1];
+        if (last && Math.hypot(e.clientX - last.x, e.clientY - last.y) <= 3) return;
+        pts.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+        if (pts.length > 120) pts.shift();
+
+        // Closed-shape detection: did the stroke loop back near an earlier point?
+        if (pts.length > 12) {
+          const head = pts[pts.length - 1];
+          for (let i = 0; i < pts.length - 10; i++) {
+            if (Math.hypot(head.x - pts[i].x, head.y - pts[i].y) < 28) {
+              const poly = pts.slice(i).map((p) => ({ x: p.x, y: p.y }));
+              if (polygonArea(poly) > 2600) {
+                killShape.current = poly;
+                trail.current = []; // start a fresh stroke
+                setShapes((s) => s + 1);
+              }
+              break;
+            }
+          }
+        }
+      }}
+      onMouseUp={() => {
+        drawing.current = false;
+        pointer.current.inside = false;
+      }}
+      onMouseLeave={() => {
+        drawing.current = false;
+        pointer.current.inside = false;
       }}
     >
-      {/* Atmospheric Background */}
+      {/* Atmospheric / Game-HUD Background */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(250,204,21,0.12),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(56,189,248,0.12),transparent_24%),radial-gradient(circle_at_80%_80%,rgba(244,114,182,0.08),transparent_26%)]" />
-        <div className="absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:72px_72px]" />
-        <div className="absolute left-[8%] top-[10%] h-56 w-56 rounded-full bg-yellow-400/10 blur-3xl" />
-        <div className="absolute right-[12%] top-[18%] h-64 w-64 rounded-full bg-sky-400/10 blur-3xl" />
-        <div className="absolute bottom-[8%] right-[20%] h-72 w-72 rounded-full bg-rose-400/10 blur-3xl" />
+        <div className="hud-grid absolute inset-0" />
+        <div className="absolute left-[8%] top-[10%] h-56 w-56 rounded-full bg-yellow-400/15 blur-3xl aura-float" />
+        <div className="absolute right-[12%] top-[18%] h-64 w-64 rounded-full bg-sky-400/15 blur-3xl aura-float-slow" />
+        <div className="absolute bottom-[8%] right-[20%] h-72 w-72 rounded-full bg-rose-400/12 blur-3xl aura-float" />
+        <div className="absolute left-[30%] bottom-[20%] h-60 w-60 rounded-full bg-emerald-400/10 blur-3xl aura-float-slow" />
+        <div className="hud-sweep absolute inset-x-0 top-0" />
+        <div className="hud-scanlines absolute inset-0 opacity-60 mix-blend-overlay" />
+        <div className="hud-vignette absolute inset-0" />
       </div>
 
       {/* Ambient Particle Field */}
       <div className="fixed inset-0 z-[1] pointer-events-none">
         <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
           <Suspense fallback={null}>
-            <AmbientParticles mouse={mouse} />
+            <AmbientParticles mouse={mouse} trail={trail} killShape={killShape} onKill={handleKill} />
             <ambientLight intensity={0.5} />
           </Suspense>
         </Canvas>
       </div>
 
+      {/* Neon Cursor Trail */}
+      <NeonTrail trail={trail} pointer={pointer} />
+
+      {/* Achievement / mission toasts */}
+      <div className="fixed top-24 right-5 z-[120] flex flex-col gap-3 md:right-10">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ x: 80, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 80, opacity: 0 }}
+              className="glass-card flex items-center gap-3 px-5 py-3"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-yellow-400/10">
+                <Trophy size={16} className="text-yellow-400" />
+              </div>
+              <div>
+                <div className="text-[9px] font-mono uppercase tracking-[0.25em] text-slate-500">Mission Complete</div>
+                <div className="text-sm font-bold text-white">{toast.title}</div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Missions HUD + play hint */}
+      <div
+        className="fixed bottom-5 left-5 z-40 flex flex-col items-start gap-3 md:bottom-8 md:left-8"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <AnimatePresence>
+          {showMissions && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              className="glass-card w-[20rem] max-w-[calc(100vw-2.5rem)] p-5"
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.25em] text-yellow-400/80">
+                  <Target size={14} /> Missions
+                </div>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-slate-500">
+                  {unlocked.length}/{MISSIONS.length}
+                </div>
+              </div>
+              <div className="flex flex-col gap-4">
+                {MISSIONS.map((m) => {
+                  const val = metricValue(m);
+                  const done = unlocked.includes(m.id) || val >= m.goal;
+                  const pct = Math.min(100, (val / m.goal) * 100);
+                  return (
+                    <div key={m.id}>
+                      <div className="mb-1.5 flex items-center justify-between gap-2">
+                        <span className={`flex items-center gap-2 text-sm font-semibold ${done ? 'text-yellow-400' : 'text-white'}`}>
+                          {done && <Check size={13} />} {m.title}
+                        </span>
+                        <span className="font-mono text-[10px] text-slate-500">{Math.min(val, m.goal)}/{m.goal}</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${done ? 'bg-yellow-400' : 'bg-sky-400/70'}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <div className="mt-1 text-[11px] leading-tight text-slate-500">{m.desc}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <button
+          onClick={() => setShowMissions((v) => !v)}
+          className={`glass-card flex items-center gap-2 px-4 py-3 font-mono text-[11px] uppercase tracking-widest transition-all ${
+            showMissions ? 'text-yellow-400' : 'text-slate-300 hover:text-white'
+          }`}
+        >
+          <Trophy size={14} className="text-yellow-400" />
+          {unlocked.length}/{MISSIONS.length} Missions
+        </button>
+
+        <div className="glass-card flex items-center gap-2 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.15em] text-slate-400">
+          <Pencil size={12} className="text-sky-400" />
+          Drag to draw a net — trap the fireflies inside
+        </div>
+      </div>
+
       {/* Top Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/40 backdrop-blur-xl">
+      <header className="glass-bar fixed top-0 left-0 right-0 z-50">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-5 md:h-20 md:px-10">
           <a
             href="#about"
