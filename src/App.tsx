@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
 import * as THREE from 'three';
+import { initAnalytics, trackEvent } from './analytics';
 import {
   Github,
   Linkedin,
@@ -467,7 +468,7 @@ function ProjectGallery({ images, title, projectId }: { images: string[]; title:
 }
 
 // --- Store Badge ---
-function StoreBadge({ url }: { url: string }) {
+function StoreBadge({ url, project }: { url: string; project: string }) {
   const store = storeFor(url);
   if (!store) return null;
   const badge = STORE_BADGES[store];
@@ -477,6 +478,7 @@ function StoreBadge({ url }: { url: string }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={badge.alt}
+      onClick={() => trackEvent('project_link_click', { project, type: 'store', store })}
       className="inline-flex transition-transform hover:scale-[1.03]"
     >
       <img src={badge.src} alt={badge.alt} className={`${badge.className} w-auto`} draggable={false} />
@@ -507,13 +509,25 @@ export default function App() {
     { id: 'contact', label: 'CONTACT', icon: <MessageSquare size={16} /> }
   ];
 
-  // Scroll spy to highlight the active nav item.
+  // Initialize analytics once.
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  // Scroll spy to highlight the active nav item + track section views.
   useEffect(() => {
     const ids = ['about', 'stack', 'projects', 'contact'];
+    const seen = new Set<string>();
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
+          if (!entry.isIntersecting) return;
+          const id = entry.target.id;
+          setActiveSection(id);
+          if (!seen.has(id)) {
+            seen.add(id);
+            trackEvent('section_view', { section: id });
+          }
         });
       },
       { rootMargin: '-40% 0px -55% 0px' }
@@ -527,6 +541,7 @@ export default function App() {
 
   const goToSection = (id: string) => {
     setActiveSection(id);
+    trackEvent('nav_click', { section: id });
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -642,14 +657,15 @@ export default function App() {
               <div className="flex flex-wrap items-center gap-3">
                 <a
                   href={SOCIAL_LINKS.email}
+                  onClick={() => trackEvent('contact_click', { location: 'hero' })}
                   className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-5 py-3 text-sm font-bold uppercase tracking-widest text-black transition-all hover:bg-yellow-300"
                 >
                   <Mail size={16} /> Get in touch
                 </a>
-                <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="rounded-xl border border-white/10 bg-white/5 p-3 text-white transition-all hover:bg-white/10">
+                <a href={SOCIAL_LINKS.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub" onClick={() => trackEvent('social_click', { network: 'github' })} className="rounded-xl border border-white/10 bg-white/5 p-3 text-white transition-all hover:bg-white/10">
                   <Github size={18} />
                 </a>
-                <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="rounded-xl border border-white/10 bg-white/5 p-3 text-white transition-all hover:bg-white/10">
+                <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" onClick={() => trackEvent('social_click', { network: 'linkedin' })} className="rounded-xl border border-white/10 bg-white/5 p-3 text-white transition-all hover:bg-white/10">
                   <Linkedin size={18} />
                 </a>
               </div>
@@ -723,6 +739,7 @@ export default function App() {
                       href={project.websiteUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => trackEvent('project_link_click', { project: project.title, type: 'website' })}
                       className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
                     >
                       <Globe size={14} /> Website
@@ -730,18 +747,22 @@ export default function App() {
                   )}
                   {project.videoUrl ? (
                     <button
-                      onClick={() => setActiveVideo(project.videoUrl!)}
+                      onClick={() => {
+                        trackEvent('project_link_click', { project: project.title, type: 'video' });
+                        setActiveVideo(project.videoUrl!);
+                      }}
                       className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
                     >
                       <Play size={14} /> {project.mediaLabel}
                     </button>
                   ) : storeFor(project.mediaUrl) ? (
-                    <StoreBadge url={project.mediaUrl!} />
+                    <StoreBadge url={project.mediaUrl!} project={project.title} />
                   ) : project.mediaUrl && (
                     <a
                       href={project.mediaUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => trackEvent('project_link_click', { project: project.title, type: 'media' })}
                       className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-yellow-400 transition-all hover:bg-yellow-400/15"
                     >
                       <ExternalLink size={14} /> {project.mediaLabel}
@@ -750,6 +771,7 @@ export default function App() {
                   {!project.websiteUrl && !project.videoUrl && !project.mediaUrl && (
                     <a
                       href={`mailto:ibrahim.alibu11work@gmail.com?subject=${encodeURIComponent(`${project.title} — Demo request`)}`}
+                      onClick={() => trackEvent('project_link_click', { project: project.title, type: 'demo_request' })}
                       className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-mono uppercase tracking-[0.2em] text-white transition-all hover:border-yellow-400/30 hover:text-yellow-400"
                     >
                       <Mail size={14} /> Request Demo
@@ -772,6 +794,7 @@ export default function App() {
               </p>
               <a
                 href="mailto:ibrahim.alibu11work@gmail.com"
+                onClick={() => trackEvent('contact_click', { location: 'contact_section' })}
                 className="inline-flex items-center gap-2 rounded-2xl bg-white px-10 py-5 text-sm font-bold uppercase tracking-widest text-black transition-all hover:bg-yellow-400"
               >
                 Send Message <ArrowUpRight size={16} />
