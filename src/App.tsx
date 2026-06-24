@@ -261,7 +261,9 @@ const PROJECTS: Project[] = [
 // --- Cursor trail (neon line that fades; particles avoid it) ---
 type TrailPoint = { x: number; y: number; t: number };
 type Pointer = { x: number; y: number; inside: boolean };
-const TRAIL_MAX_AGE = 900; // ms
+type ShapeFlash = { poly: { x: number; y: number }[]; t: number };
+const TRAIL_MAX_AGE = 3000; // ms — neon trail lingers longer before fading
+const SHAPE_FLASH_DURATION = 750; // ms — red net flash on a completed shape
 
 // Shoelace area of a screen-space polygon.
 function polygonArea(poly: { x: number; y: number }[]) {
@@ -423,7 +425,7 @@ function AmbientParticles({
     const my = mouse.current[1] * vH;
     const repelR = Math.min(vW, vH) * 0.3;
     const trailR = Math.min(vW, vH) * 0.16;
-    const ease = Math.min(1, delta * 2.5);
+    const ease = Math.min(1, delta * 3.6);
     const gravity = vH * 2.6;
 
     // Project the recent (still-alive) trail points into world space once per frame.
@@ -482,12 +484,15 @@ function AmbientParticles({
       const anchorX = anchors[i2] * vW * 0.95;
       const anchorY = anchors[i2 + 1] * vH * 0.9;
 
+      // Livelier flutter: faster drift, wider wander, plus a quick wing-jitter.
       const flutterX =
-        Math.sin(t * (0.3 + speeds[i] * 0.2) + phases[i]) * (radii[i] * 0.5) +
-        Math.sin(t * 0.15 + phases[i] * 1.7) * vW * 0.02;
+        Math.sin(t * (0.9 + speeds[i] * 0.6) + phases[i]) * (radii[i] * 0.85) +
+        Math.sin(t * 0.32 + phases[i] * 1.7) * vW * 0.035 +
+        Math.sin(t * (3.4 + speeds[i]) + phases[i] * 2.3) * vW * 0.012;
       const flutterY =
-        Math.cos(t * (0.32 + speeds[i] * 0.18) + phases[i] * 1.2) * (radii[i] * 0.45) +
-        Math.cos(t * 0.17 + phases[i] * 1.5) * vH * 0.02;
+        Math.cos(t * (0.95 + speeds[i] * 0.55) + phases[i] * 1.2) * (radii[i] * 0.8) +
+        Math.cos(t * 0.36 + phases[i] * 1.5) * vH * 0.035 +
+        Math.cos(t * (3.7 + speeds[i]) + phases[i] * 2.6) * vH * 0.012;
 
       // Subtle parallax lean toward the cursor.
       let targetX = anchorX + flutterX + (mx - anchorX) * 0.03;
@@ -549,10 +554,12 @@ function AmbientParticles({
 // --- Neon Cursor Trail (2D canvas overlay that fades out) ---
 function NeonTrail({
   trail,
-  pointer
+  pointer,
+  shapeFlashes
 }: {
   trail: React.MutableRefObject<TrailPoint[]>;
   pointer: React.MutableRefObject<Pointer>;
+  shapeFlashes: React.MutableRefObject<ShapeFlash[]>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -592,10 +599,40 @@ function NeonTrail({
       ctx.stroke();
     };
 
+    // Draw a completed net: fill + outline that flares intense red, then fades.
+    const drawShapeFlash = (poly: { x: number; y: number }[], k: number) => {
+      if (poly.length < 2) return;
+      // k: 0 -> just drawn, 1 -> gone. Flare fast, fade slow.
+      const flare = Math.sin(Math.min(1, k * 1.5) * Math.PI); // peak near the start
+      const fade = Math.pow(1 - k, 1.4);
+
+      ctx.beginPath();
+      ctx.moveTo(poly[0].x, poly[0].y);
+      for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
+      ctx.closePath();
+
+      ctx.fillStyle = `rgba(255, 36, 42, ${0.28 * fade + 0.12 * flare})`;
+      ctx.fill();
+
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.shadowColor = 'rgba(255, 40, 48, 0.95)';
+      ctx.shadowBlur = (16 + 26 * flare) * fade;
+      ctx.strokeStyle = `rgba(255, ${Math.round(60 + 120 * flare)}, ${Math.round(60 + 120 * flare)}, ${0.85 * fade + 0.15 * flare})`;
+      ctx.lineWidth = 2.5 + 4 * flare;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    };
+
     let raf = 0;
     const draw = () => {
       const now = performance.now();
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      // Completed-net flashes (drawn under the live trail).
+      const flashes = shapeFlashes.current;
+      while (flashes.length && now - flashes[0].t > SHAPE_FLASH_DURATION) flashes.shift();
+      for (const f of flashes) drawShapeFlash(f.poly, (now - f.t) / SHAPE_FLASH_DURATION);
 
       const pts = trail.current;
       while (pts.length && now - pts[0].t > TRAIL_MAX_AGE) pts.shift();
@@ -625,7 +662,7 @@ function NeonTrail({
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, [trail, pointer]);
+  }, [trail, pointer, shapeFlashes]);
 
   return <canvas ref={canvasRef} className="fixed inset-0 z-[2] pointer-events-none" />;
 }
@@ -793,6 +830,7 @@ export default function App() {
   const trail = useRef<TrailPoint[]>([]);
   const pointer = useRef<Pointer>({ x: 0, y: 0, inside: false });
   const killShape = useRef<{ x: number; y: number }[] | null>(null);
+  const shapeFlashes = useRef<ShapeFlash[]>([]);
   const drawing = useRef(false);
 
   // --- Game progress (persisted to localStorage) ---
@@ -921,6 +959,7 @@ export default function App() {
               const poly = pts.slice(i).map((p) => ({ x: p.x, y: p.y }));
               if (polygonArea(poly) > 2600) {
                 killShape.current = poly;
+                shapeFlashes.current.push({ poly, t: performance.now() });
                 trail.current = []; // start a fresh stroke
                 setShapes((s) => s + 1);
               }
@@ -962,7 +1001,7 @@ export default function App() {
       </div>
 
       {/* Neon Cursor Trail */}
-      <NeonTrail trail={trail} pointer={pointer} />
+      <NeonTrail trail={trail} pointer={pointer} shapeFlashes={shapeFlashes} />
 
       {/* Achievement / mission toasts */}
       <div className="fixed top-24 right-5 z-[120] flex flex-col gap-3 md:right-10">
