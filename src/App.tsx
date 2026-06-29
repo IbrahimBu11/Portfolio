@@ -22,7 +22,8 @@ import {
   Trophy,
   Target,
   Check,
-  Pencil
+  Pencil,
+  Download
 } from 'lucide-react';
 import nanocry01 from './assets/portfolio/source/nanocry-01.webp';
 import nanocry02 from './assets/portfolio/source/nanocry-02.webp';
@@ -1136,6 +1137,15 @@ export default function App() {
             </a>
             <a href={SOCIAL_LINKS.email} aria-label="Email" className="rounded-lg p-2 text-slate-500 transition-all hover:bg-white/5 hover:text-white">
               <Mail size={16} />
+            </a>
+            <a
+              href={`${import.meta.env.BASE_URL}Ibrahim_Butt_CV.pdf`}
+              download="Ibrahim_Butt_CV.pdf"
+              aria-label="Download Resume"
+              className="ml-1 flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-widest text-black transition-all hover:bg-yellow-300 md:px-4"
+            >
+              <Download size={14} />
+              <span className="hidden sm:inline">Resume</span>
             </a>
           </div>
         </div>
