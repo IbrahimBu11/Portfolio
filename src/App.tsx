@@ -105,6 +105,7 @@ interface Project {
   techs: (keyof typeof TECH_SVGS)[];
   images: string[];
   videoUrl?: string;
+  galleryVideoUrl?: string;
   status?: string;
   websiteUrl?: string;
   mediaUrl?: string;
@@ -183,6 +184,7 @@ const PROJECTS: Project[] = [
     summary: "Lead multiplayer developer architecting a 30+ player, server-authoritative battle royale on Photon Fusion. Lag compensation (hitbox buffering, KCC) cuts perceived latency by 40%, with Unity Multiplay matchmaking, dedicated servers, and a high-frequency sync system handling 150+ objects per frame.",
     techs: ["unity", "photon", "csharp"],
     images: [nanocry01, nanocry02, nanocry03, nanocry04],
+    galleryVideoUrl: "https://www.youtube.com/embed/Jr7ksKWedeU",
     websiteUrl: "https://ibrahimbu11.github.io/NanocryWebsite/"
   },
   {
@@ -669,7 +671,7 @@ function NeonTrail({
 }
 
 // --- Project Image Gallery (horizontal scroll) ---
-function ProjectGallery({ images, title, projectId }: { images: string[]; title: string; projectId: number }) {
+function ProjectGallery({ images, title, projectId, videoUrl }: { images: string[]; title: string; projectId: number; videoUrl?: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
@@ -687,7 +689,7 @@ function ProjectGallery({ images, title, projectId }: { images: string[]; title:
     updateArrows();
     window.addEventListener('resize', updateArrows);
     return () => window.removeEventListener('resize', updateArrows);
-  }, [images.length]);
+  }, [images.length, videoUrl]);
 
   const scrollByPage = (dir: 1 | -1) => {
     const el = scrollRef.current;
@@ -751,6 +753,17 @@ function ProjectGallery({ images, title, projectId }: { images: string[]; title:
         onClickCapture={onClickCapture}
         className={`no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 ${dragging ? 'cursor-grabbing snap-none select-none' : 'cursor-grab'}`}
       >
+        {videoUrl && (
+          <div className="h-56 shrink-0 snap-start overflow-hidden rounded-2xl border border-white/5 bg-black/30 md:h-72 xl:h-80">
+            <iframe
+              src={videoUrl}
+              title={`${title} video`}
+              className="aspect-video h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        )}
         {images.map((image, imageIndex) => (
           <div
             key={`${projectId}-${imageIndex}`}
@@ -1245,7 +1258,7 @@ export default function App() {
                     {project.status}
                   </div>
                 )}
-                <ProjectGallery images={project.images} title={project.title} projectId={project.id} />
+                <ProjectGallery images={project.images} title={project.title} projectId={project.id} videoUrl={project.galleryVideoUrl} />
                 <div className="mb-4 flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-2xl font-bold text-white transition-colors group-hover:text-yellow-400">{project.title}</h3>
